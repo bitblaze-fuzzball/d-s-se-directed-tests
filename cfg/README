@@ -1,0 +1,16 @@
+			    Format for traces (CFG)
+			    =======================
+
+* programname-cksum1-cksum2.stat.cfg
+
+* programname-cksum1-cksum2.dyn.cfg
+
+programname is the name of the binary analyzed
+
+cksum1 are the first 6 characters of the md5 of the program traces
+
+cksum2 are the first 6 characters of the md5 of the .cfg file
+
+.dyn stands for CFGs constructed entirely dynamically
+
+.stat stands for CFGs constructed dynamically and the augmented statically

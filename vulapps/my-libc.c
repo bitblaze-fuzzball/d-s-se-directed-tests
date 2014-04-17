@@ -1,0 +1,126 @@
+int isdigit(int c) {
+    return c >= '0' && c <= '9';
+}
+
+int isspace(int c) {
+    return c == ' ' || c == '\f' || c == '\n' || c == '\r' || c == '\t'
+      || c == '\v';
+}
+
+int isascii(int c) {
+    return !(c & 0x80);
+}
+
+int strcmp(const char *s1, const char *s2) {
+    while (*s1 && *s1 == *s2) {
+        s1++;
+        s2++;
+    }
+    return *s1 - *s2;
+}
+
+char *strchr(const char *s, int c) {
+  char *p;
+  for (p = (char *)s; *p; p++) {
+    if (*p == c)
+      return p;
+  }
+  return 0;
+}
+
+char *strcpy(char *buf, const char *src) {
+  char *p;
+  for (p = buf; *src; src++, p++) {
+    *p = *src;
+  }
+  *p = 0;
+  return buf;
+}
+
+unsigned strlen(const char *s) {
+    unsigned i;
+    for (i = 0; *s; s++)
+        i++;
+    return i;
+}
+
+char *strcat(char *buf, const char *extra) {
+  char *p = buf;
+  p += strlen(p);
+  strcpy(p, extra);
+  return buf;
+}
+
+void *memcpy(void *dest, const void *src, unsigned int n) {
+    unsigned i;
+    char *d = (char *)dest;
+    const char *s = (const char *)src;
+    for (i = 0; i < n; i++) {
+        d[i] = s[i];
+    }
+    return dest;
+}
+
+char *optarg;
+int optind, opterr, optopt;
+
+static void getopterror(int which) {
+  static char error1[]="Unknown option `-x'.\n";
+  static char error2[]="Missing argument for `-x'.\n";
+  if (opterr) {
+    if (which) {
+      error2[23]=optopt;
+      write(2,error2,28);
+    } else {
+      error1[17]=optopt;
+      write(2,error1,22);
+    }
+  }
+}
+
+int getopt(int argc, char * const argv[], const char *optstring) {
+  static int lastidx,lastofs;
+  char *tmp;
+  if (optind==0) { optind=1; lastidx=0; }	/* whoever started setting optind to 0 should be shot */
+again:
+  if (optind>argc || !argv[optind] || *argv[optind]!='-' || argv[optind][1]==0)
+    return -1;
+  if (argv[optind][1]=='-' && argv[optind][2]==0) {
+    ++optind;
+    return -1;
+  }
+  if (lastidx!=optind) {
+    lastidx=optind; lastofs=0;
+  }
+  optopt=argv[optind][lastofs+1];
+  if (optopt != ':' && (tmp=strchr(optstring,optopt))) {
+    if (*tmp==0) {	/* apparently, we looked for \0, i.e. end of argument */
+      ++optind;
+      goto again;
+    }
+    if (tmp[1]==':') {	/* argument expected */
+      if (tmp[2]==':' || argv[optind][lastofs+2]) {	/* "-foo", return "oo" as optarg */
+	if (!*(optarg=argv[optind]+lastofs+2)) optarg=0;
+	goto found;
+      }
+      optarg=argv[optind+1];
+      if (!optarg) {	/* missing argument */
+	++optind;
+	if (*optstring==':') return ':';
+	getopterror(1);
+	return ':';
+      }
+      ++optind;
+    } else {
+      ++lastofs;
+      return optopt;
+    }
+found:
+    ++optind;
+    return optopt;
+  } else {	/* not found */
+    getopterror(0);
+    ++optind;
+    return '?';
+  }
+}

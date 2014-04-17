@@ -1,0 +1,1 @@
+./cfg_fuzzball -linux-syscalls -trace-syscalls -trace-stopping -check-condition-at 0x080487c3:'mem[R_EBP:reg32_t - 12:reg32_t]:reg32_t == 7:reg32_t' -fuzz-start-addr 0x08048865 -symbolic-cstring 0xbffffd3e+30  -trace-assigns-string -coverage-stats -time-stats -fuzz-end-addr 0x080487c7 ./mp-bad -stp-path ./stp -skip-call-addr 0x080484e8=0 -- ./mp-bad pathfile.init

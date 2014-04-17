@@ -1,0 +1,1 @@
+./cfg_fuzzball ./nsl-bad-diet -stp-path ./stp -linux-syscalls -trace-syscalls -trace-stopping -trace-assigns-string -coverage-stats -time-stats -trace-iterations -check-condition-at 0x08048230:'R_EAX:reg32_t > 999:reg32_t' -zero-memory -fuzz-start-addr 0x0804861b -symbolic-cstring-fulllen 0xbffff9a0+975 -- ./nsl-bad-diet testcase.init

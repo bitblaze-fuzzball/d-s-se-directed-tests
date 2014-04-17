@@ -1,0 +1,1 @@
+./cfg_fuzzball ./txtdns-bad-diet -stp-path ./stp -linux-syscalls -trace-syscalls -trace-stopping -coverage-stats -time-stats -trace-iterations -trace-assigns-string -check-condition-at 0x08048777:'R_EDX:reg32_t > 30:reg32_t' -fuzz-start-addr 0x08048893 -symbolic-cstring 0xbffff950+52 -zero-memory -iteration-limit 200 -- ./txtdns-bad-diet

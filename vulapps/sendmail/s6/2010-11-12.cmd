@@ -1,0 +1,1 @@
+./cfg_fuzzball ./ttflag-bad-mylibc-diet -linux-syscalls -check-condition-at 0x080483d9:'R_EAX:reg32_t >= 100:reg32_t' -stp-path ./stp -trace-iterations -trace-syscalls -trace-assigns-string  -trace-stopping -iteration-limit 4000 -coverage-stats -time-stats -fuzz-start-addr 0x08048254 -skip-func-ret 0x08049008=10 -symbolic-cstring 0x50002008+15 -- ./ttflag-bad-mylibc-diet

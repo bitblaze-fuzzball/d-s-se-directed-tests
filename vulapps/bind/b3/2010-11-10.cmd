@@ -1,0 +1,1 @@
+./cfg_fuzzball ./iquery-bad-diet -stp-path ./stp -linux-syscalls -trace-syscalls -trace-stopping -trace-assigns-string -coverage-stats -time-stats -trace-iterations -check-condition-at 0x080482b4:'R_EAX:reg32_t >= 512:reg32_t' -fuzz-start-addr 0x0804838a -symbolic-cstring 0x50002008+511 -skip-func-ret 0x0804945c=10 -symbolic-word 0xbffffd48=len -- ./iquery-bad-diet b3.in

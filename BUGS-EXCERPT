@@ -1,0 +1,830 @@
+bind/b4/ns-lookup-bad.c:145
+===================================================
+		    /*BAD*/
+		    sprintf(buf, "%s: query(%s) %s (%s:%s) learnt (A=%s:NS=%s)",
+			    sysloginfo, queryname,
+			    complaint, dname,
+			    inet_ntoa(data_inaddr(a_rr->d_data)),
+			    a ? a : "<Not Available>",
+			    ns ? ns : "<Not Available>" );
+
+bind/b4/ns-lookup-bad.c:161
+===================================================
+		    /*BAD*/
+		    sprintf(buf, "%s: query(%s) %s (%s:%s)",
+			    sysloginfo, queryname,
+			    complaint, dname,
+			    inet_ntoa(data_inaddr(a_rr->d_data)));
+		    syslog(LOG_INFO, buf);
+		    printf("strlen(buf) = %d\n", strlen(buf));
+
+bind/b1/nxt-bad.c:407
+===================================================
+	  /*BAD*/
+	  memcpy(cp1, cp, dlen - n);  /* we haven't checked to see if dlen - n
+					 bytes can even fit into data buf 
+				      */
+	  
+	  cp += (dlen - n);
+	  cp1 += (dlen - n);
+
+bind/b2/sig-bad.c:561
+===================================================
+		/* BAD */		
+		memcpy(cp1, cp, n);
+		cp += n;
+		cp1 += n;
+		
+		/* compute size of data */
+		n = cp1 - (u_char *)data;
+
+bind/b3/iquery-bad.c:196
+===================================================
+	/*BAD*/
+	memcpy(anbuf, fname, alen);
+	data = anbuf + alen - dlen;
+	*cpp = (u_char *)fname;
+	*buflenp -= HFIXEDSZ;
+	count = 0;
+
+
+sendmail/s6/tTflag-bad-mylibc.c:172
+===================================================
+		  /*BAD*/
+		  tTvect[first++] = i; /* UNDERFLOW CAN OCCUR HERE. */
+		                       /* tTvect can only hold tTsize elements */
+		}
+		  /* This is a potential BSS underflow of tTdvect defined inside sendmail.h */	
+		}
+		/* more arguments? */
+
+sendmail/s4/mime2-bad.c:203
+===================================================
+			/*BAD*/
+			*fbufp = (c1 << 2) | ((c2 & 0x30) >> 4);              /* Write first char to fbuf */
+			
+
+			/* Check to see if either 1) reached a '\n' or */
+			/* 2) fbufp about to point past end of fbuf (unfortunately there is a typo in the if-check) */
+
+
+sendmail/s4/mime2-bad.c:219
+===================================================
+			  /*BAD*/
+			  *fbufp = '\0';
+			  /* putline((char *) fbuf, mci); */
+			  printf("resetting fbufp\n");
+			  fbufp = fbuf;                             /* fbufp gets reset to fbuf. unfortunately this never */
+			                                            /* happens */
+			}
+
+sendmail/s4/mime2-bad.c:230
+===================================================
+			/*BAD*/
+			*fbufp = ((c2 & 0x0f) << 4) | ((c3 & 0x3c) >> 2);
+			if (*fbufp++ == '\n' || fbuf >= &fbuf[MAXLINE])
+			{
+			  if (*--fbufp != '\n' || *--fbufp != '\r')
+					fbufp++;
+			        /*BAD*/
+
+sendmail/s4/mime2-bad.c:236
+===================================================
+			        /*BAD*/
+				*fbufp = '\0';
+				/* putline((char *) fbuf, mci);*/
+				printf("resetting fbufp\n");
+				fbufp = fbuf;
+			}
+			if (c4 == '=')
+
+sendmail/s4/mime2-bad.c:246
+===================================================
+			/*BAD*/
+			*fbufp = ((c3 & 0x03) << 6) | c4;
+			if (*fbufp++ == '\n' || fbuf >= &fbuf[MAXLINE])
+			{
+			  if (*--fbufp != '\n' || *--fbufp != '\r')
+			    fbufp++;
+			  /*BAD*/
+
+sendmail/s4/mime2-bad.c:252
+===================================================
+			  /*BAD*/
+			  *fbufp = '\0';
+			  /* putline((char *) fbuf, mci); */
+			  printf("resetting fbufp\n");
+			  fbufp = fbuf;
+			}
+		}
+
+sendmail/s4/mime2-bad.c:263
+===================================================
+		  /*BAD*/
+		  *fbufp = '\0';
+		  /* putline((char *) fbuf, mci); */
+		}
+	}
+	else
+	{
+
+sendmail/s2/util-bad.c:176
+===================================================
+	      /*BAD*/
+	      (void) strcpy(bp, login);
+	      *bp = toupper(*bp);
+	      while (*bp != '\0')
+		bp++;
+	    }
+	  else {
+
+sendmail/s2/util-bad.c:183
+===================================================
+	    /*BAD*/
+	    *bp++ = *p;
+	    printf ("bp-buf = %d\n", (bp-buf));
+	  }	    
+	}
+	*bp = '\0';
+
+
+sendmail/s1/crackaddr-bad-mylibc.c:195
+===================================================
+		      /*BAD*/
+		      *bp++ = c;
+		      }
+		/* check for backslash escapes */
+		if (c == '\\')
+		{
+			/* arrange to quote the address */
+
+sendmail/s1/crackaddr-bad-mylibc.c:213
+===================================================
+			    /*BAD*/
+			    *bp++ = c;
+			  }
+			goto putg;
+		}
+
+		/* check for quoted strings */
+
+sendmail/s1/crackaddr-bad-mylibc.c:246
+===================================================
+					    /*BAD*/
+					    *bp++ = ' ';
+					  }
+				     
+					/*BAD*/
+					*bp++ = c;
+				}
+
+sendmail/s1/crackaddr-bad-mylibc.c:250
+===================================================
+					/*BAD*/
+					*bp++ = c;
+				}
+			}
+		}
+		if (cmtlev > 0)
+		{
+
+sendmail/s1/crackaddr-bad-mylibc.c:301
+===================================================
+				  /*BAD*/
+				  *bp++ = c;
+				  /*BAD*/
+				  *bp++ = *p;
+				}
+				p++;
+				goto putg;
+
+sendmail/s1/crackaddr-bad-mylibc.c:303
+===================================================
+				  /*BAD*/
+				  *bp++ = *p;
+				}
+				p++;
+				goto putg;
+			}
+
+
+sendmail/s1/crackaddr-bad-mylibc.c:315
+===================================================
+			  /*BAD*/
+			  *bp++ = '"';
+
+			  /* back up over the ':' and any spaces */
+			  --p;
+			  
+			  while (isascii((int) *--p) && isspace((int) *p))
+
+sendmail/s1/crackaddr-bad-mylibc.c:331
+===================================================
+					  /*BAD*/	
+					  *bp++ = '\\';
+					/*BAD*/
+					*bp++ = c;
+				
+				}
+			}
+
+sendmail/s1/crackaddr-bad-mylibc.c:333
+===================================================
+					/*BAD*/
+					*bp++ = c;
+				
+				}
+			}
+			if (quoteit)
+			{
+
+sendmail/s1/crackaddr-bad-mylibc.c:343
+===================================================
+				  /*BAD*/
+				  *bp++ = '"';
+				}
+				while ((c = *p++) != ':')
+				  {
+				    if (bp < buflim){
+				      /*BAD*/
+
+sendmail/s1/crackaddr-bad-mylibc.c:349
+===================================================
+				      /*BAD*/
+				      *bp++ = c;
+				    }
+				  }
+				/*BAD*/
+				*bp++ = c;
+			}
+
+sendmail/s1/crackaddr-bad-mylibc.c:353
+===================================================
+				/*BAD*/
+				*bp++ = c;
+			}
+
+			/* any trailing white space is part of group: */
+			while (isascii((int) *p) && isspace((int)*p) && bp < buflim)
+			  {
+
+sendmail/s1/crackaddr-bad-mylibc.c:360
+===================================================
+			    /*BAD*/
+			    *bp++ = *p++;
+			  }
+			copylev = 0;
+			putgmac = quoteit = false;
+			bufhead = bp;
+			addrhead = p;
+
+sendmail/s1/crackaddr-bad-mylibc.c:373
+===================================================
+			  /*BAD*/
+			  *bp++ = c;
+		}
+
+		/* check for characters that may have to be quoted */
+		if (strchr(MustQuoteChars, c) != NULL)
+		{
+
+sendmail/s1/crackaddr-bad-mylibc.c:409
+===================================================
+			    /*BAD*/
+			    *bp++ = '"';
+			    
+			    /* back up over the '<' and any spaces */
+			    --p;
+			    while (isascii((int)*--p) && isspace((int)*p))
+			      continue;
+
+sendmail/s1/crackaddr-bad-mylibc.c:424
+===================================================
+				      /*BAD*/
+				      *bp++ = '\\';
+				    /*BAD*/
+				    *bp++ = c;
+				}
+			}
+			if (quoteit)
+
+sendmail/s1/crackaddr-bad-mylibc.c:426
+===================================================
+				    /*BAD*/
+				    *bp++ = c;
+				}
+			}
+			if (quoteit)
+			{
+			  if (bp == &buf[1])
+
+sendmail/s1/crackaddr-bad-mylibc.c:435
+===================================================
+				  /*BAD*/
+				  *bp++ = '"';
+			  while ((c = *p++) != '<')
+			    {
+			      if (bp < buflim)
+				/*BAD*/
+				*bp++ = c;
+
+sendmail/s1/crackaddr-bad-mylibc.c:440
+===================================================
+				/*BAD*/
+				*bp++ = c;
+			    }
+			  /*BAD*/
+			  *bp++ = c;
+			}
+			copylev = 0;
+
+sendmail/s1/crackaddr-bad-mylibc.c:443
+===================================================
+			  /*BAD*/
+			  *bp++ = c;
+			}
+			copylev = 0;
+			putgmac = quoteit = false;
+			continue;
+		}
+
+sendmail/s1/crackaddr-bad-mylibc.c:471
+===================================================
+			  /*BAD*/
+			  *bp++ = c;
+			continue;
+		}
+
+		/* must be a real address character */
+	putg:
+
+sendmail/s1/crackaddr-bad-mylibc.c:481
+===================================================
+		      /*BAD*/
+		      *bp++ = ' ';
+		    /*BAD*/
+		    *bp++ = MACROEXPAND;
+		    /*BAD*/
+		    *bp++ = 'g';
+		    putgmac = true;
+
+sendmail/s1/crackaddr-bad-mylibc.c:483
+===================================================
+		    /*BAD*/
+		    *bp++ = MACROEXPAND;
+		    /*BAD*/
+		    *bp++ = 'g';
+		    putgmac = true;
+		  }
+		printf("Buf = %s\n", buf);
+
+sendmail/s1/crackaddr-bad-mylibc.c:485
+===================================================
+		    /*BAD*/
+		    *bp++ = 'g';
+		    putgmac = true;
+		  }
+		printf("Buf = %s\n", buf);
+	}
+	
+
+sendmail/s1/crackaddr-bad-mylibc.c:494
+===================================================
+	  /*BAD*/
+	  *bp++ = '"';
+	while (realcmtlev-- > 0)
+	  /*BAD*/
+	  *bp++ = ')';
+	while (realanglelev-- > 0)
+	  /*BAD*/
+
+sendmail/s1/crackaddr-bad-mylibc.c:497
+===================================================
+	  /*BAD*/
+	  *bp++ = ')';
+	while (realanglelev-- > 0)
+	  /*BAD*/
+	  *bp++ = '>';
+	/*BAD*/
+	*bp++ = '\0';
+
+sendmail/s1/crackaddr-bad-mylibc.c:500
+===================================================
+	  /*BAD*/
+	  *bp++ = '>';
+	/*BAD*/
+	*bp++ = '\0';
+	
+	printf("test_buf should equal GOOD\n");
+	printf("test_buf = %s\n", test_buf);
+
+sendmail/s1/crackaddr-bad-mylibc.c:502
+===================================================
+	/*BAD*/
+	*bp++ = '\0';
+	
+	printf("test_buf should equal GOOD\n");
+	printf("test_buf = %s\n", test_buf);
+
+	return buf;
+
+sendmail/s7/txt-dns-file-bad.c:387
+===================================================
+	  /* BAD */
+	  (void) strncpy((*rr)->rr_u.rr_txt, (char*) p + 1, *p);
+	  /*BAD*/
+	  (*rr)->rr_u.rr_txt[*p] = 0;
+	  break;
+
+	default:
+
+sendmail/s7/txt-dns-file-bad.c:389
+===================================================
+	  /*BAD*/
+	  (*rr)->rr_u.rr_txt[*p] = 0;
+	  break;
+
+	default:
+	  (*rr)->rr_u.rr_data = (unsigned char*) xalloc(size);
+	  if (size != 0 && (*rr)->rr_u.rr_data == NULL)
+
+sendmail/s5/prescan-overflow-bad.c:406
+===================================================
+                        /*BAD*/  
+                        *q = '\0';
+			printf ("canaray=[%s]\n", canary);
+			printf ("canary should be 5 bytes, max\n");
+
+			if (bslashmode)
+			{
+
+sendmail/s5/prescan-overflow-bad.c:427
+===================================================
+				  /*BAD*/	
+				  *q++ = '\\';     
+				  printf ("canary=[%s]\n", canary);
+				  printf ("canary should be 5 bytes, max\n");
+				  continue;   /* continue while loop */
+				}
+			}
+
+sendmail/s5/prescan-overflow-bad.c:526
+===================================================
+			/*BAD*/
+			*q++ = '\0';
+			printf ("canary=[%s]\n", canary);
+			printf ("canary should be 5 bytes, max\n");
+
+			if (q - tok > MAXNAME)
+			{
+
+sendmail/s3/mime1-bad.c:239
+===================================================
+				/* BAD */
+				*(*outfile)++ = c1 << 4 | c2;
+			}
+		}
+		else
+		{
+			if (state == 1 && c1 == '_')
+
+sendmail/s3/mime1-bad.c:254
+===================================================
+			/*BAD*/
+			*(*outfile)++ = c1;
+
+			if (c1 == '\n')
+			break;
+		}
+	}
+
+sendmail/s3/mime1-bad.c:266
+===================================================
+	/*BAD*/
+	*(*outfile)++ = '\0';
+	return 1;
+}
+
+
+/*
+
+wu-ftpd/f1/mapped-path-bad.c:107
+===================================================
+  /* BAD */
+  strcpy( path, mapped_path );    /* copies mapped_path to path without doing a size check */
+  return path;
+}
+
+/* Make these globals rather than local to mapping_chdir to avoid stack overflow */
+char pathspace[ MAXPATHLEN ];                     /* This buffer can get overflowed too */
+
+wu-ftpd/f1/mapped-path-bad.c:146
+===================================================
+	/* BAD */
+	strcat( mapped_path, "/" );                                /* no bounds checking is done */
+      /* We do not check to see if there is room in mapped_path for dir */
+      /* BAD */ 
+      strcat( mapped_path, dir );     /* no bounds checking is done */
+}
+
+
+wu-ftpd/f1/mapped-path-bad.c:149
+===================================================
+      /* BAD */ 
+      strcat( mapped_path, dir );     /* no bounds checking is done */
+}
+
+int
+#ifdef __STDC__
+mapping_chdir(char *orig_path)
+
+wu-ftpd/f1/mapped-path-bad.c:169
+===================================================
+      /* BAD */
+      strcpy( path, orig_path );                /* suppose path = orig_path = /x/xx/xxx/xxxx/... */
+      printf("Copying orig_path to path....max strlen(path) = %d. strlen(path) = %d\n", MAXPATHLEN - 1, strlen(path));
+      if (strlen(path) >= MAXPATHLEN){
+	printf ("ALERT:pathspace[MAXPATHLEN] has been overflowed!\n");
+      }
+	
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:192
+===================================================
+  /* BAD */
+  strcpy(curpath, pathname);                /* could overflow curpath.. pathname is tainted */
+  printf ("canary=[%s]\n", canary);
+  
+  if (*pathname != '/') {
+    uid_t userid;
+    
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:262
+===================================================
+	  /* BAD */	  
+	  strcat(namebuf, "/");                     /* append slash to cwd.. dangerous.. could be an off-by-one overflow */
+	  printf ("canary=[%s]\n", canary);
+	}
+	/* BAD */
+	strcat(namebuf, where);
+	printf ("canary=[%s]\n", canary);
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:266
+===================================================
+	/* BAD */
+	strcat(namebuf, where);
+	printf ("canary=[%s]\n", canary);
+	  
+	where = ++ptr;
+	
+	userid = geteuid();
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:281
+===================================================
+	    /* BAD */
+	    strcpy(result, namebuf);
+	    printf ("canary=[%s]\n", canary);
+	  }
+	  else {
+	    /*BAD*/
+	    strcpy(result, chroot_path);
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:286
+===================================================
+	    /*BAD*/
+	    strcpy(result, chroot_path);
+	    printf ("canary=[%s]\n", canary);
+	    if (namebuf[0]!='/')
+	      {
+		/*BAD*/
+		strcat(result, namebuf);
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:291
+===================================================
+		/*BAD*/
+		strcat(result, namebuf);
+		printf ("canary=[%s]\n", canary);
+	      }
+	    else if (namebuf[1] != '\0') {
+	      for (ptr=result; *ptr!= '\0'; ptr++);
+	      if (ptr==result || *--ptr != '/') {
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:298
+===================================================
+		/* BAD */
+		strcat(result, namebuf);
+		printf ("canary=[%s]\n", canary);
+	      }
+	      else {
+		/*BAD*/
+		strcat(result, &namebuf[1]);
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:303
+===================================================
+		/*BAD*/
+		strcat(result, &namebuf[1]);
+		printf ("canary=[%s]\n", canary);
+	      }
+	    }
+	  }
+	  return (NULL);
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:322
+===================================================
+	      /* BAD */
+	      strcpy(result, namebuf);
+	      printf ("canary=[%s]\n", canary);
+	    }
+	    else {
+              /*BAD*/
+	      strcpy(result, chroot_path);  
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:327
+===================================================
+              /*BAD*/
+	      strcpy(result, chroot_path);  
+	      printf ("canary=[%s]\n", canary);
+	      if (namebuf[0]!='/') {
+		/* BAD */
+		strcat(result, namebuf);
+		printf ("canary=[%s]\n", canary);
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:331
+===================================================
+		/* BAD */
+		strcat(result, namebuf);
+		printf ("canary=[%s]\n", canary);
+	      }
+	      else if (namebuf[1]!='\0') {
+		for (ptr=result; *ptr!= '\0'; ptr++);
+		if (ptr==result || *--ptr != '/') {
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:338
+===================================================
+		  /* BAD */
+		  strcat(result, namebuf);
+		  printf ("canary=[%s]\n", canary);
+		}
+		else {
+		  /* BAD */
+		  strcat(result, &namebuf[1]);
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:343
+===================================================
+		  /* BAD */
+		  strcat(result, &namebuf[1]);
+		  printf ("canary=[%s]\n", canary);
+		}
+	      }
+	    }
+	    return (NULL);
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:356
+===================================================
+	    /* BAD */
+	    strcat(linkpath, "/");
+	    printf ("canary=[%s]\n", canary);
+	    /* BAD */
+	    strcat(linkpath, where);
+	    printf ("canary=[%s]\n", canary);
+	  }
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:359
+===================================================
+	    /* BAD */
+	    strcat(linkpath, where);
+	    printf ("canary=[%s]\n", canary);
+	  }
+	  
+	  /*BAD*/
+	  strcpy(curpath, linkpath);
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:364
+===================================================
+	  /*BAD*/
+	  strcpy(curpath, linkpath);
+	  printf ("canary=[%s]\n", canary);
+	  
+
+	  /*goto loop;*/
+	  /* Replace goto loop with the following two lines */
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:376
+===================================================
+	  /* BAD */
+	  strcpy(workpath, namebuf);
+	  printf ("canary=[%s]\n", canary);
+	  continue;
+	}
+	if (*where) {
+	  if (chroot_path == NULL) {
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:383
+===================================================
+	    /* BAD */
+	    strcpy(result, namebuf);
+	    printf ("canary=[%s]\n", canary);
+	  }
+	  else {
+	    strcpy(result, chroot_path);
+	    if (namebuf[0]!='/') {
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:390
+===================================================
+	      /* BAD */
+	      strcat(result, namebuf);
+	      printf ("canary=[%s]\n", canary);
+	    }
+	    else if (namebuf[1]!='\0') {
+	      for (ptr=result; *ptr!= '\0'; ptr++);
+	      if (ptr==result || *--ptr != '/') {
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:397
+===================================================
+		/* BAD */
+		strcat(result, namebuf);
+		printf ("canary=[%s]\n", canary);
+	      }
+ 	      else {
+		/* BAD */
+		strcat(result, &namebuf[1]);
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:402
+===================================================
+		/* BAD */
+		strcat(result, &namebuf[1]);
+		printf ("canary=[%s]\n", canary);
+	      }
+	    }
+	  }
+	  return (NULL);      /* path/notadir/morepath */
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:410
+===================================================
+	  /* BAD */
+	  strcpy(workpath, namebuf);
+	  printf ("canary=[%s]\n", canary);
+	}
+      }
+      if (chroot_path == NULL) {
+	/* BAD */
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:416
+===================================================
+	/* BAD */
+	strcpy(result, workpath);
+	printf ("canary=[%s]\n", canary);
+      }
+      else {
+	/*BAD*/
+	strcpy(result, chroot_path);
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:421
+===================================================
+	/*BAD*/
+	strcpy(result, chroot_path);
+	printf ("canary=[%s]\n", canary);
+	if (workpath[0]!='/') {
+	  /* BAD */
+	  strcat(result, workpath);
+	  printf ("canary=[%s]\n", canary);
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:425
+===================================================
+	  /* BAD */
+	  strcat(result, workpath);
+	  printf ("canary=[%s]\n", canary);
+	}
+	else if (workpath[1] != '\0') {
+	  for (ptr=result; *ptr!= '\0'; ptr++);
+	  if (ptr==result || *--ptr != '/') {
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:432
+===================================================
+	    /* BAD */
+	    strcat(result, workpath);
+	    printf ("canary=[%s]\n", canary);
+	  }
+	  else {
+	    /* BAD */
+	    strcat(result, &workpath[1]);
+
+wu-ftpd/f3/realpath-2.4.2-bad.c:437
+===================================================
+	    /* BAD */
+	    strcat(result, &workpath[1]);
+	    printf ("canary=[%s]\n", canary);
+	  }
+	}
+      }
+      return (result);
+
+wu-ftpd/f2/realpath-bad.c:486
+===================================================
+      /* BAD */                            
+      (void) strcat(resolved, wbuf);     /* resolved becomes /home/misha/docs.txt + null terminator => MAXPATHLEN + 1 bytes */ 
+      printf("after strcat, resolved = %s, strlen(resolved) = %d\n", resolved, strlen(resolved));      
+      if ((strlen(resolved)+1) > MAXPATHLEN) 
+	printf ("strlen(resolve) > MAXPATHLEN -- buffer overflow\n");
+
+  }                                    
+

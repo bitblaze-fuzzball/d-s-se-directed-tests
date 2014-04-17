@@ -1,0 +1,1 @@
+./cfg_fuzzball ./nxt-bad-nojt -linux-syscalls -check-condition-at 0x08048d6c:'R_EAX:reg32_t >= 0x7fffffff:reg32_t' -stp-path ./stp -trace-iterations -trace-syscalls -trace-assigns-string  -trace-stopping -coverage-stats -time-stats -fuzz-start-addr 0x080489fb -symbolic-cstring 0x0804b070+104 -cfg b1.cg -target-addr 0x08048d6c -- nxt-bad-nojt

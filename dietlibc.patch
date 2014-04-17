@@ -1,0 +1,131 @@
+diff -ur dietlibc-cvs/dietlibc-2010-11-08/diet.c ucb-svn/dietlibc/diet.c
+--- dietlibc-cvs/dietlibc-2010-11-08/diet.c	2009-10-27 18:19:19.000000000 -0500
++++ ucb-svn/dietlibc/diet.c	2014-02-21 13:52:12.558716509 -0600
+@@ -25,9 +25,9 @@
+ }
+ 
+ static const char* Os[] = {
+-  "i386","-Os","-mpreferred-stack-boundary=2",
+-	 "-falign-functions=1","-falign-jumps=1",
+-	 "-falign-loops=1","-fomit-frame-pointer",0,
++  "i386","-Os","-mpreferred-stack-boundary=2", "-g"
++	 "-falign-functions=1","-falign-jumps=1", "-fno-jump-tables"
++	 "-falign-loops=1","-fno-omit-frame-pointer",0,
+   "x86_64","-Os",0,
+   "sparc","-Os","-mcpu=supersparc",0,
+   "sparc64","-Os","-m64","-mhard-quad-float",0,
+diff -ur dietlibc-cvs/dietlibc-2010-11-08/dietfeatures.h ucb-svn/dietlibc/dietfeatures.h
+--- dietlibc-cvs/dietlibc-2010-11-08/dietfeatures.h	2010-08-01 14:56:21.000000000 -0500
++++ ucb-svn/dietlibc/dietfeatures.h	2014-02-21 13:52:12.562716579 -0600
+@@ -3,13 +3,13 @@
+ 
+ /* feel free to comment some of these out to reduce code size */
+ 
+-#define WANT_FLOATING_POINT_IN_PRINTF
+-#define WANT_FLOATING_POINT_IN_SCANF
++// #define WANT_FLOATING_POINT_IN_PRINTF
++// #define WANT_FLOATING_POINT_IN_SCANF
+ #define WANT_CHARACTER_CLASSES_IN_SCANF
+ #define WANT_NULL_PRINTF
+ /* #define WANT_ERROR_PRINTF */
+-#define WANT_LONGLONG_PRINTF
+-#define WANT_LONGLONG_SCANF
++// #define WANT_LONGLONG_PRINTF
++// #define WANT_LONGLONG_SCANF
+ 
+ /* 128 or 2048 bytes buffer size? */
+ /* #define WANT_SMALL_STDIO_BUFS */
+@@ -23,10 +23,10 @@
+ #define SLASH_PROC_OK
+ 
+ /* use errno_location instead of errno; NEEDED FOR MULTI-THREADING! */
+-#define WANT_THREAD_SAFE
++// #define WANT_THREAD_SAFE
+ 
+ /* support __thread; NEEDED FOR MULTI-THREADING! */
+-#define WANT_TLS
++// #define WANT_TLS
+ 
+ /* make the startcode, etc. dynamic aware ({con,de}structors) */
+ /* #define WANT_DYNAMIC */
+@@ -35,7 +35,7 @@
+ #define WANT_LD_SO_GDB_SUPPORT
+ 
+ /* do you want smaller or faster string routines? */
+-#define WANT_FASTER_STRING_ROUTINES
++// #define WANT_FASTER_STRING_ROUTINES
+ 
+ /* define this to have strncpy zero-fill and not just zero-terminate the
+  * string */
+@@ -50,29 +50,29 @@
+ 
+ /* you need to define this if you want to run your programs with large
+  * file support on kernel 2.2 or 2.0 */
+-#define WANT_LARGEFILE_BACKCOMPAT
++// #define WANT_LARGEFILE_BACKCOMPAT
+ 
+ /* do you want localtime(3) to read /etc/localtime?
+  * Needed for daylight saving time etc. */
+-#define WANT_TZFILE_PARSER
++// #define WANT_TZFILE_PARSER
+ 
+ /* do you want the DNS routines to parse and use "domain" and "search"
+  * lines from /etc/resolv.conf?  Normally not used on boot floppies and
+  * embedded environments. */
+-#define WANT_FULL_RESOLV_CONF
++// #define WANT_FULL_RESOLV_CONF
+ 
+ /* do you want IPv6 transport support in the DNS resolver? */
+-#define WANT_IPV6_DNS
++// #define WANT_IPV6_DNS
+ 
+ /* do you want gethostbyname and friends to consult /etc/hosts? */
+-#define WANT_ETC_HOSTS
++// #define WANT_ETC_HOSTS
+ 
+ /* do you want gethostbyname to understand dotted decimal IP numbers
+  * directly and not try to resolve them? */
+-#define WANT_INET_ADDR_DNS
++// #define WANT_INET_ADDR_DNS
+ 
+ /* do you want math functions high precision rather than fast/small? */
+-#define WANT_HIGH_PRECISION_MATH
++// #define WANT_HIGH_PRECISION_MATH
+ 
+ /* do you want support for matherr? */
+ #define WANT_MATHERR
+@@ -87,11 +87,11 @@
+ /* This enables zeroconf DNS aka Rendezvous aka Bonjour. */
+ /* This code will try zeroconf DNS if you ask for host.local or if you
+  * ask for an unqualified hostname */
+-#define WANT_PLUGPLAY_DNS
++// #define WANT_PLUGPLAY_DNS
+ 
+ /* This enables LLMNR, the MS variant of zeroconf DNS.  This only works
+  * if you also enabled WANT_PLUGPLAY_DNS */
+-#define WANT_LLMNR
++// #define WANT_LLMNR
+ 
+ /* Do you want valgrind support?  If enabled, the startup code will
+  * check for valgrind, and if detected, turn off optimized SIMD string
+diff -ur dietlibc-cvs/dietlibc-2010-11-08/Makefile ucb-svn/dietlibc/Makefile
+--- dietlibc-cvs/dietlibc-2010-11-08/Makefile	2010-06-02 15:22:07.000000000 -0500
++++ ucb-svn/dietlibc/Makefile	2014-02-21 13:52:12.558716509 -0600
+@@ -133,14 +133,15 @@
+ LIBMATHOBJ=$(patsubst %,$(OBJDIR)/%,$(LIBMATH))
+ 
+ ifeq ($(CFLAGS),-pipe -nostdinc)
+-CFLAGS+=-O -fomit-frame-pointer
++CFLAGS+=-O 
+ endif
+ 
+ ifneq ($(DEBUG),)
+ CFLAGS = -g
+ COMMENT = :
+ endif
+-CFLAGS += -W -Wall -Wextra -Wchar-subscripts -Wmissing-prototypes -Wmissing-declarations -Wno-switch -Wno-unused -Wredundant-decls
++CFLAGS += -W -Wall -Wextra -Wchar-subscripts -Wmissing-prototypes -Wmissing-declarations -Wno-switch -Wno-unused -Wredundant-decls -fno-omit-frame-pointer -fno-jump-tables -g
++COMMENT = :
+ 
+ PWD=$(shell pwd)
+ 

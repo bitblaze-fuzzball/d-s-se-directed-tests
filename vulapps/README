@@ -1,0 +1,179 @@
+
+DIRECTORY STRUCTURE
+The three subdirectories here, sendmail, bind, and wu-ftpd, contain the 14 * 2 (BAD & OK) model
+programs derived from historic vulnerable versions of these programs.  With each of these directories
+are directores each of which contain a model.  For more details on the models, please
+see the paper "Testing Static Analysis Tools Using Exploitable Overflows From Open Source Code",
+Misha Zitser, Richard Lippmann, and Tim Leek.
+
+COMPILING
+The first thing you do once you untar this stuff, is to run "make clean; make" in *this* directory.  
+That should not only compile each of the model programs properly but will also, in some
+cases, run some attendant programs and or create necessary files fo the test cases to
+work properly.  
+
+RUNNING TEST CASES
+What follows is instructions for how to run each of the models and what to expect as 
+a result.  The script runall.pl will run all of the models.  The output of each gets
+dumped in the corresponding model directory with suffix ".out".  However, as some of these
+segfault, the output file is often empty.  For best results, run each by hand. 
+
+
+
+
+
+1. sendmail/s1
+  BAD
+  run with: 	ca-bad < ./s1.in
+  result: 	test_buf gets overflowed in function crackaddr.  
+		buf is just above test_buf on the stack, so its orginal contents,
+		Original contents of buf, "GOOD", get replaced with overflow.
+
+  OK
+  run with: 	ca-ok < ./s1.in
+  result: 	buf doesn't get clobbered.
+
+2. sendmail/s2
+  BAD
+  run with:	ge-bad 
+  result:	nbuf gets overflowed in function recipient (it defined local to an else block). 
+		test_buf is just above nbuf on the stack, so its orginal contents,
+		Original contents of test_buf, "GOOD", get replaced with overflow.
+  OK
+  run with:	ge-ok
+  result:	test_buf does not get clobbered.  
+
+
+3. sendmail/s3
+  BAD
+  run with: 	m1-bad s3.in
+  result: 	obuf gets overflowed in function mime7to8.
+		canary is just above obuf on the stack, so its orginal contents,
+		Original contents of canary, "GOOD", get replaced with overflow.  
+  OK 
+  run with: 	m1-ok s3.in
+  result: 	canary does not get clobbered.
+
+
+4. sendmail/s4
+  BAD
+  run with:	m2-bad s4.in
+  result: 	fbuf gets overflowed in function mime7to8. 
+		canary is just above fbuf on the stack, so its orginal contents,
+		Original contents of canary, "GOOD", get replaced with overflow.  
+  OK
+  run with:	m2-ok s4.in
+  result: 	canary does not get clobbered.
+
+
+5. sendmail/s5
+  BAD
+  run with:	prescan-bad
+  result:	pvpbuf gets overflowed in function prescan.  
+		canary is just above pvbuf on the stack (both actually defined in
+		parseaddr and passed as args to prescan).
+		Original contents of canary, "GOOD", get replaced with overflow.  
+  OK
+  run with:	prescan-ok
+  result: 	canary does not get clobbered.
+
+
+6. sendmail/s6
+  BAD	
+  run with:	ttflag-bad -d 4294967200-100
+  result:	tTdvect, a global variable defined in my-main.c, gets underflowed in function tTflag.
+		No canary to view   results.  tTvect is an alias for tTdvect and it is written via 
+		index first, i.e. tTvect[first++] = i.  the index first is printed out and so you
+		can verify that it goes negative.  
+  OK
+  run with:	no improper indexing into tTdvect.
+
+
+7. sendmail/s7
+  BAD
+  run with:	txtdns-bad
+  result:	rr is a pointer to a pointer to a RESOURCE_RECORD_T.  (*rr)->rr_u.rr_txt is a buffer 
+		allocated on the heap.  .rr_txt is of size defined by the *p which is being used to
+		parse the "data" buffer that comes in as an arg to parse_dns_reply.  A strncpy with 
+		.rr_txt as its destination uses as its third arg (specifying how many bytes to copy)
+		the value *p which is not checked to make sure it is less than the size previously
+		parsed out from data.  oy.  The copy causes a segmentation fault, asking to copy 255
+		bytes into a 100 byte buffer.
+  OK
+  run with:	txtdns-ok
+  result:	only 99 bytes are copied to the 100 byte buffer .rr_txt
+
+
+8. bind/b1
+  BAD
+  run with:	nxt-bad
+  result:	cp1 gets overflowed in rrextract and a segmentation fault occurs when memcpy gets a 
+		negative 3rd arg.
+		memcpy casts the negative int to an unsigned int and tries to cpy 4GB of data. 
+
+  OK
+  run with:	nxt-ok
+  result: 	the memcpy doesn't happen because there is a check that the third arg is >= 0
+
+
+9. bind/b2
+  BAD
+  run with: 	sig-bad
+  result:	cp1 gets overflowed in rrextract and a segmentation fault occurs when memcpy gets a 
+		negative 3rd argument.  
+		NOTE: this is a different bug than bind/b1 even though it is in the same fn. 
+  OK
+  run with: 	sig-ok
+  result:	rrextract detects this case and exits before the offending memcpy.
+
+
+10. bind/b3
+  BAD
+  run with:	iquery-bad b3.in
+  result:	memcpy 27 bytes into anbuf in req_iquery, triggering a segmentation fault
+
+  OK
+  run with 	iquery-ok b3.in
+  result:	overflow detected and memcpy doesn't happen
+
+
+11. bind/b4
+  BAD
+  run with:	nsl-bad b4.in
+  result:	sprintf into buf[999] in nslookupComplain causes a segmentation fault, as 1126 
+		bytes is copied.  
+  OK
+  run with:	nsl-ok b4.in
+  result:	<=999 bytes is always sprintf-ed into buf.
+
+
+12. wu-ftpd/f1
+  BAD
+  run with:	mp-bad pathfile
+  result:	path gets overflowed in do_elem. 29 bytes written into it when it is only 10 bytes.
+		canary (an int) which is just above path on the stack, gets clobbered
+  OK
+  run with:	mp-bad pathfile
+  result:	canary not clobbered.  
+
+
+13. wu-ftpd/f2  (really f3 in sabo/hist..)
+  BAD
+  run with:	obo-bad /tmp/foo/bar/foo/bar/foo/bar/foo/bar/abcdefgh
+  result:       NB: abcdefgh is a symlink to abcdefghi.  There is an overflow of the buffer 
+		resolved in fb_realpath by one, as the symlink is not too big but the target is 
+		too big to fit in the buffer. 
+  OK
+  run with:	obo-ok /tmp/foo/bar/foo/bar/foo/bar/foo/bar/abcdefgh
+  result:  	resolved does not get overflowed. 
+
+
+14. wu-ftpd/f3  (really f2 in sabo/hist..)
+  BAD
+  run with:	rp-bad /aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa
+  result:	curpath, which is allocated at 46 bytes, is overflowed when a strcpy tries to 
+		copy 386 bytes into it, in function mt_realpath.  a segfault occurs and the canary
+		placed above curpath on the stack is overflowed.  
+  OK
+  run with:	rp-ok /aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aaa/aa/aaa
+  result:	no overflow in curpath happens.  the canary is unvoilated.

@@ -1,0 +1,1 @@
+for m in $(find . -name Makefile); do d=$(dirname $m) ; b=$(echo $d/*-diet); echo 1>&2 "Parsing $m"; for f in $(grep -- "\$(DIET).*" $m) ; do  if echo $f | grep -q "\.c$" ; then echo 1>&2 "   Found source $f"; for l in $(grep -n "/\* *BAD *\*/" $d/$f | cut -f 1 -d ":") ; do echo 1>&2 "      Found BUG @ $l"; echo $b	$d/$f:$((l+1)) ;done; fi ; done ; done | sed "s/\.\///g"

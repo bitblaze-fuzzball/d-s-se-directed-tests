@@ -1,0 +1,62 @@
+typedef [abstract] void* program_info;
+typedef [abstract] void* interproc_cfg;
+
+program_info program_info_from_file([string] const char *fname);
+void free_program_info([in] program_info pi);
+
+interproc_cfg construct_interproc_cfg([in] program_info pi);
+void free_interproc_cfg([in] interproc_cfg ipcfg);
+
+void interproc_cfg_set_target_addr([in] interproc_cfg ipcfg,
+				   [int64] unsigned int addr,
+				   [in] program_info pi);
+
+void interproc_cfg_compute_shortest_paths([in] interproc_cfg ipcfg);
+
+long long interproc_cfg_lookup_distance([in] interproc_cfg ipcfg,
+					[int64] unsigned int addr,
+					[in] program_info pi);
+
+int interproc_cfg_lookup_influence([in] interproc_cfg ipcfg,
+				   [int64] unsigned int addr,
+				   [in] program_info pi);
+
+[int64] long interproc_cfg_lookup_pth([in] interproc_cfg ipcfg,
+				      [int64] unsigned int addr,
+				      [in] program_info pi);
+
+boolean interproc_cfg_is_loop_exit_cond([in] interproc_cfg ipcfg,
+					[int64] unsigned int addr,
+					[in] program_info pi);
+
+boolean interproc_cfg_edge_is_loop_exit([in] interproc_cfg ipcfg,
+					[int64] unsigned int from_addr,
+					[int64] unsigned int to_addr,
+					[in] program_info pi);
+
+void interproc_cfg_set_target_warning([in] interproc_cfg ipcfg,
+				      [int64] unsigned int addr,
+				      [in] program_info pi,
+				      [string] const char *fname);
+
+boolean
+interproc_cfg_is_interesting_loop([in] interproc_cfg ipcfg,
+				  [int64] unsigned int addr,
+				  [in] program_info pi);
+
+[int64] unsigned int
+interproc_cfg_get_component([in] interproc_cfg ipcfg,
+			    [int64] unsigned int addr,
+			    [in] program_info pi);
+
+boolean
+interproc_cfg_same_bb([in] interproc_cfg ipcfg,
+		      [int64] unsigned int addr1,
+		      [int64] unsigned int addr2,
+		      [in] program_info pi);
+
+void compute_influence_for_warning([in] program_info pi, 
+                                   [int64] unsigned int addr);
+
+void warnings_from_file([string] const char *fname, [in,out] program_info pi);
+

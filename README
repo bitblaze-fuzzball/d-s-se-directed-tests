@@ -1,0 +1,50 @@
+This directory contains the prototype tool and case studies developed
+during the research project described in the following paper:
+
+"Statically-Directed Dynamic Automated Test Generation". Domagoj
+Babic, Lorenzo Martignoni, Stephen McCamant, and Dawn Song. In
+Proceedings of the ACM/SIGSOFT International Symposium on Software
+Testing and Analysis (ISSTA), July 2011.
+http://bitblaze.cs.berkeley.edu/papers/testgen-issta11.pdf
+
+This includes a Pin-based dynamic tool for collecting traces (see
+pintracer.cc), a binary level static analyzer to find potential
+locations of buffer overflow vulnerabilities (static.cc), and code to
+use the CFG and analysis results from these previous stages to enhance
+symbolic execution (cfg_fuzzball.ml). Also included is a suite of
+experiments (vulapps) using Zitser et al.'s benchmarks based on
+historical buffer overflows in Bind, Sendmail, and WU-FTPD.
+
+The primary authors of this code were:
+
+Domagoj Babic: design and lead implementation of static analysis
+
+Lorenzo Martignoni: dynamic analysis, contributor to static analysis,
+experimental infrastructure
+
+Stephen McCamant: FuzzBALL integration, FuzzBALL experiments
+
+This code is made available under the Apache License version 2.0, as
+found in the file "COPYING". (Note that as usual if you combine this
+code with other code under a more restrictive license, the most
+restrictive license terms apply: in particular because FuzzBALL is
+released under the GNU GPL, the combined "cfg_fuzzball" executable
+would fall under its terms.)
+
+Our initial release consists of a version of this code roughly as it
+previously was in our internal SVN repository, last updated in
+mid-2011. This version was built and tested with a version of FuzzBALL
+older than any public release, as well as older versions of Pin, the
+dietlibc C library, and other dependencies. It would therefore
+probably not compile out-of-the box with modern versions of these
+tools, or give exactly the same results reported in the ISSTA paper.
+In the future we plan to update this code so it works with a modern
+system, and to provide instructions for compiling and re-running the
+buffer-overflow experiments.
+
+Though we can't promise any detailed technical support (and all three
+developers have moved on to other jobs), feel free to send comments,
+questions, and feedback via the bitblaze-users mailing list (hosted by
+Google Groups):
+
+http://groups.google.com/group/bitblaze-users

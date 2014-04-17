@@ -1,0 +1,108 @@
+#!/usr/bin/make -f
+
+SHELL = /bin/bash
+
+DEBUG = 2
+ASSERT = 2
+TIMEOUT = 900
+
+CFG = cfg
+CFGs = $(shell find $(CFG)/ -name "*.cfg")
+LOGs = $(CFGs:%.cfg=%.log)
+
+ifdef TIMEOUT
+TIMEOUTx = --timeout $(TIMEOUT)
+endif
+
+ifdef DEBUG
+DEBUGx = --dlev $(DEBUG)
+endif
+
+ifdef ASSERT
+ASSERTx = --alev $(ASSERT)
+endif
+
+# This is necessary to prevent make to consider some .post files as
+# intermediate (and to delete them at the end of the build)
+.SECONDARY: 
+
+all: MIT
+
+$(CFG)/MIT/%.log: $(CFG)/MIT/%.cfg static
+	/usr/bin/time -f "### Exit status: %x\n### Wallclock time:%e\n### Maximum resident size: %M" \
+		./static $(ASSERTx) $(DEBUGx) $(TIMEOUTx) $(EXTRA) \
+		--interpret \
+		--warns `echo $< | sed "s/\.cfg$$/.slice/"` \
+		--cfg $< 2> $@ || true
+
+$(CFG)/MIT/%.warn: $(CFG)/MIT/%.log warning2source.py
+	cat $< | grep "^\*\*\* " | python warning2source.py `echo $< | sed "s/$(CFG)\/MIT/vulapps/" | sed "s/\.log//"` /dev/stdin > $@
+
+$(CFG)/MIT/%.cfg: vulapps/% ./pintracer.so
+	@echo "============= $<  ============="
+	@dir=`echo $< | cut -f 2- -d "/"` && mkdir -p $(CFG)/MIT/`dirname $$dir`
+	/usr/bin/time -f "%s" -o "/tmp/pintime" --append ./trace.sh -s -c  `dirname $<` -o $@ $< testcase.init > /dev/null 2>&1 || true
+	@rm -f testcase
+
+# $(CFG)/MIT/%.dyn.cfg: vulapps/% ./pintracer.so
+# 	@echo "============= $<  ============="
+# 	@dir=`echo $< | cut -f 2- -d "/"` && mkdir -p $(CFG)/MIT/`dirname $$dir`
+# 	./trace.sh -o $@  -c  `dirname $<` $< testcase.init || true
+# 	@rm -f testcase
+
+MITBENCHMARKS = \
+	bind/b1/nxt-bad-myresolv-mylibc-diet \
+	bind/b2/sig-bad-diet \
+	bind/b3/iquery-bad-diet \
+    bind/b4/nsl-bad-diet \
+	sendmail/s1/ca-bad-mylibc-diet \
+	sendmail/s2/ge-bad-diet	\
+	sendmail/s3/m1-bad-diet \
+	sendmail/s4/m2-bad-diet \
+	sendmail/s5/prescan-bad-diet \
+	sendmail/s6/ttflag-bad-mylibc-diet \
+	sendmail/s7/txtdns-bad-diet \
+	wu-ftpd/f1/mp-bad-mylibc-diet \
+	wu-ftpd/f3/rp-bad-diet \
+	wu-ftpd/f2/obo-bad-diet
+
+#    @r568, this benchmark runs out of 1GB of memory.
+
+MITBENCHMARKS_STATIC = $(MITBENCHMARKS:%=$(CFG)/MIT/%.cfg)
+
+.PHONY: MIT
+MIT: $(MITBENCHMARKS_STATIC:%.cfg=%.warn) # $(MITBENCHMARKS_DYNAMIC:%.cfg=%.log)
+	@echo "============================================================"
+	@echo "                Summary of the analysis"
+	@echo "============================================================"
+	@for warn in $^ ;\
+	do \
+		log=`echo $$warn | sed "s/warn/log/"` ; \
+		nullderef=`grep '^\*\*\* Possible NULL ptr' $$log | cut -f 6- -d "#" | sort | uniq | wc -l` ; \
+		milasigned=`grep '^\*\*\* Misaligned ' $$log | cut -f 6- -d "#" | sort | uniq | wc -l` ; \
+		uninit=`grep '^\*\*\* .*uninitialized address' $$log | cut -f 6- -d "#" | sort | uniq | wc -l` ; \
+		woob=`grep '^\*\*\* Write out of bounds' $$log | cut -f 6- -d "#" | sort | uniq | wc -l` ; \
+		roob=`grep '^\*\*\* Read out of bounds' $$log | cut -f 6- -d "#" | sort | uniq | wc -l` ; \
+		app=`basename $$log .log` ; app=`basename $$app .dyn` ; \
+		app=`dirname $$log |  cut -f 3- -d "/"`/`basename $$app .stat` ; \
+		warn=`echo $$log | sed "s/\.log/.warn/"` ; \
+		if tail $$log | grep -q "^\[FUNCTION\] main@.*DONE" ; \
+		then \
+			echo -e "\x1b[32;01m`basename $$log .log`: success\x1b[39;49;00m NULL:$$nullderef MISAL:$$misaligned UNINIT:$$uninit WOOB:$$woob ROOB:$$roob ($$log $$warn)" ; \
+		else \
+			cause="unknown" ; \
+			tail $$log | grep -q "Bye bye" && cause="timeout" ; \
+			tail $$log | grep -q "assertion.*failed" && cause="assert" ; \
+			echo -e "\x1b[31;01m`basename $$log .log`: $$cause\x1b[39;49;00m  NULL:$$nullderef MISAL:$$misaligned UNINIT:$$uninit WOOB:$$woob ROOB:$$roob ($$log $$warn)" ; \
+		fi ; \
+		if [ "$(VERBOSE)" != "" ] ; then bash fpfn.sh `echo $$log | sed  "s/$(CFG)\/MIT\///" | sed "s/\.log//"` ; fi; \
+	done
+
+.PHONY: clean
+clean:
+	rm -f $(LOGs) $(LOGs:%.log=%.warn)
+
+.PHONY: clean-all
+clean-all: clean
+	rm -f $(CFGs)
+	find $(CFG) -name \*.warn -exec rm '{}' \;

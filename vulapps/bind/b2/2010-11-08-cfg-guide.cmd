@@ -1,0 +1,1 @@
+./cfg_fuzzball ./sig-bad-nojt -linux-syscalls -check-condition-at 0x08048fdf:'R_EAX:reg32_t >= 0x7fffffff:reg32_t' -stp-path ./stp -trace-iterations -trace-syscalls -trace-assigns-string  -trace-stopping -coverage-stats -time-stats -fuzz-start-addr 0x08049195  -zero-memory -symbolic-cstring 0x00804b070+114 -cfg b2.cg -target-addr 0x08048ff0 -- sig-bad-nojt

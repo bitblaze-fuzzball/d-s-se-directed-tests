@@ -1,0 +1,1 @@
+./cfg_fuzzball ./ca-bad -linux-syscalls -trace-iterations -trace-syscalls -trace-assigns-string  -trace-stopping -iteration-limit 4000 -coverage-stats -time-stats -stp-path ./stp -check-condition-at 0x08048668:'(R_EBX:reg32_t - 0x08049e7e:reg32_t) >= 30:reg32_t' -zero-memory -fuzz-start-addr 0x08048c28 -symbolic-cstring 0xbffffd14+99 -- ./ca-bad

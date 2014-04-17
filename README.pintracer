@@ -1,0 +1,34 @@
+				   PINTRACER
+
+$ export LD_BIND_NOW=1
+$ pin -t pintracer.so PIN_ARGS -- PROG PROG_ARGS
+
+PIN_ARGS:
+
+--debug=N          set the debug level to N; debug messages are written to 
+                   '/tmp/pintrace.log'
+
+--skiplibs=0|1     skip (1) libraries functions when constructing the CFGs
+
+--trace=F          dump a minimalistic execution trace to F; the trace
+                   contains the list of *all* the basic block executed
+
+--cfg=F            dump the reconstructed program to F (CFG of each executed 
+		   function and the callgraph)
+
+--dot=D            dump the CFGs and the callgraph in 'graphviz' format into 
+                   the directory D, which must already exist.
+
+--vcg=D            like --dot, but use the VCG format for graphs.
+
+--outprog=F        serialize the callgraph and the CFG to F
+
+--inprog=F         unserialize the callgraph and the CFG from F (used for 
+                   incremental CFG update)
+
+Have a look at the script 'trace.sh'.
+
+Please do not remove the comments at the end of .cc and .h files. They are used
+by my editor.
+
+-- lm
