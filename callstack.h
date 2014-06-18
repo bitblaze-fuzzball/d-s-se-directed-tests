@@ -13,6 +13,7 @@ static callstack_t __callstack[CALLSTACK_MAX_DEPTH];
 static int __callstack_depth = 0;
 
 static inline void callstack_push(int tid, void *stackptr, void *funcaddr, void *calladdr) {
+  (void)tid;
   assert(__callstack_depth >= 0 && __callstack_depth < CALLSTACK_MAX_DEPTH);
 
   __callstack_depth++;
@@ -22,6 +23,7 @@ static inline void callstack_push(int tid, void *stackptr, void *funcaddr, void 
 }
 
 static inline void callstack_pop(int tid, void *stackptr, void **funcaddr, void **calladdr) {
+  (void)tid;
   assert(__callstack_depth >= 0 && __callstack_depth < CALLSTACK_MAX_DEPTH);
 
   while (__callstack_depth > 0 && __callstack[__callstack_depth - 1].stackptr != stackptr) {
@@ -41,6 +43,7 @@ static inline void callstack_pop(int tid, void *stackptr, void **funcaddr, void 
 }
 
 static inline void callstack_top(int tid, void **funcaddr, void **calladdr) {
+  (void)tid;
   assert(__callstack_depth >= 0 && __callstack_depth < CALLSTACK_MAX_DEPTH);
 
   if (__callstack_depth > 0) {
@@ -53,6 +56,7 @@ static inline void callstack_top(int tid, void **funcaddr, void **calladdr) {
 }
 
 static inline void *callstack_top_funcaddr(int tid) {
+  (void)tid;
   assert(__callstack_depth >= 0 && __callstack_depth < CALLSTACK_MAX_DEPTH);
 
   if (__callstack_depth > 0) {
@@ -63,6 +67,7 @@ static inline void *callstack_top_funcaddr(int tid) {
 }
 
 static inline int callstack_depth(int tid) {
+  (void)tid;
   assert(__callstack_depth >= 0 && __callstack_depth < CALLSTACK_MAX_DEPTH);
 
   return __callstack_depth;

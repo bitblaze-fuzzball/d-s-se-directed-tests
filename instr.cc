@@ -73,7 +73,7 @@ void Instruction::decode() {
     bool old_tcar = translate_calls_and_returns;
     translate_calls_and_returns = true;
 
-    prog = vine::byte_insn_to_asmp(vine::bfd_arch_i386, address, rawbytes, size);
+    prog = vine::byte_insn_to_asmp(vine::asmir_arch_x86, address, rawbytes, size);
     block = vine::asm_addr_to_ir(prog, address);
 
     statements.insert(statements.begin(), block->vine_ir->begin(), block->vine_ir->end());

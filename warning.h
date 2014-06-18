@@ -36,6 +36,7 @@ private:
 	void serialize(Archive & ar, const unsigned int version) {
 	ar & slice;
 	ar & addr;
+	(void)version;
     }
 
 public:

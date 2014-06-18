@@ -312,6 +312,7 @@ template<class SubClass, class ValSetTy, class StateTy>
 inline void
 AbstractInterpreter<SubClass,ValSetTy,StateTy>::visitCallInstr(CallInstr
         &i) {
+    (void)i;
     BasicBlock *bb = cur_bb;
     Cfg *cfg = cur_bb->getCfg();
 
@@ -1018,6 +1019,7 @@ inline void AbstractInterpreter<S,V,St>::enterFunction(Function &f,
 template<class S, class V, class St>
 inline void AbstractInterpreter<S,V,St>::leaveFunction(const Function
         &f, ContextPtr prev_context) {
+    (void)f;
     callstack.pop_back();
 
     // This is necessary for ctx-sensitive analysis, otherwise we

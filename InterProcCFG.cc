@@ -267,6 +267,8 @@ InterProcCFG::copy_edges_to_ipcfg(Function *func,
     property_map<IPCFGraph, edge_weight_t>::type edge_weight
 	= get(edge_weight_t(), ipcfg);
 
+    (void)include_calls;
+
     const char *func_name = func_unique_name(func);
     Cfg *cfg = func->getCfg();
 
@@ -660,7 +662,7 @@ void InterProcCFG::add_call_ret_edges_to_g1_and_g2(costmap &costs,
 	    Function *f = NULL;
 	    for (cit = src->getCfg()->call_targets_begin(*src);
 		 cit != src->getCfg()->call_targets_end(*src); ++cit) {
-		debug("%.8x\n", *cit ? (*cit)->getAddress() : NULL);
+		debug("%.8x\n", *cit ? (*cit)->getAddress() : 0);
 		assert(!f);
 		f = *cit;
 	    }

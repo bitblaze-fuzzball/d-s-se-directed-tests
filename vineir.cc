@@ -1,8 +1,3 @@
-/*
- Owned and copyright BitBlaze, 2007. All rights reserved.
- Do not copy, disclose, or distribute without explicit written
- permission.
-*/
 //======================================================================
 //
 // This file contains a test of the VEX IR translation interface.
@@ -13,6 +8,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <assert.h>
+#include <unistd.h>
 #include <set>
 
 #include "asm_program.h"
@@ -70,11 +66,13 @@ int main(int argc, char **argv) {
 
     extern bool translate_calls_and_returns;
 
+    (void)argc; (void)argv;
+
 	translate_calls_and_returns = true;
 
     size = read(0, buf, sizeof(buf));
 
-    prog = byte_insn_to_asmp(bfd_arch_i386, 0, (unsigned char *) buf, size);
+    prog = byte_insn_to_asmp(asmir_arch_x86, 0, (unsigned char *) buf, size);
     block = asm_addr_to_ir(prog, 0);
 
     vblocks.push_back(block);

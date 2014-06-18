@@ -24,6 +24,7 @@ private:
 public:
     ContextInsensitive(addr_t a) { context = a;} ;
     ContextInsensitive(const Context &ctx, addr_t a) { 
+	(void)ctx;
 	context = a; 
     }
 

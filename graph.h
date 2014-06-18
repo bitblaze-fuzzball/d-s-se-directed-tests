@@ -964,7 +964,7 @@ public:
 
         explicit const_edge_iterator(const Graph *g_, edge_iterator eit_) {
 	    g = g_;
-	    eit = eit;
+	    eit = eit_;
 	}
 
     public:

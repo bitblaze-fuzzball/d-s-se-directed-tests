@@ -44,8 +44,10 @@ struct Hash<const T *const> {
 
 template <typename T>
 struct Max {
-    int operator()(T a) const { return 0; }
-    int operator()(T a, int b, int c) const { return 0; }
+    int operator()(T a) const { (void)a; return 0; }
+    int operator()(T a, int b, int c) const {
+	(void)a; (void)b; (void)c; return 0;
+    }
 };
 
 template <typename T>

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 tmp=$(mktemp)
-PIN=./pin-2.8-33586-gcc.3.4.6-ia32_intel64-linux/pin
+PIN=./pin-2.13-65163-gcc.4.4.7-linux/pin
 OUTDIR="./cfg"
 DEBUG="3"
 

@@ -2,23 +2,25 @@
 # DISABLE_ASSERTIONS=1 make --- disables assertions
 # ENABLE_OPTIMIZED=1 make   --- builds an optimized build
 
-CFLAGS_ASMIR = -Ilibasmir -Ilibasmir/src/include -IVEX/pub 
-LDFLAGS_ASMIR = libasmir/src/libasmir.a VEX/libvex.a -lopcodes -lbfd -lz -lsqlite3
+CFLAGS_ASMIR = -Ifuzzball/libasmir -Ifuzzball/libasmir/src/include -IVEX/pub -Ibinutils/include
+LDFLAGS_ASMIR = fuzzball/libasmir/src/libasmir.a VEX/libvex.a -lopcodes -lbfd -lz -lsqlite3
 NDEBUG:=$(shell if [ ! -z $(DISABLE_ASSERTIONS) ]; then echo "-DNDEBUG"; fi)
 CFLAGS = -Wall -Wno-deprecated -Wextra -pipe -ffloat-store -Wno-unused $(NDEBUG)
-LDFLAGS = -lboost_serialization -lboost_iostreams
+LDFLAGS = -Lboost/lib -lboost_serialization -lboost_iostreams
 
 CFLAGS += $(CFLAGS_ASMIR)
 LDFLAGS += $(LDFLAGS_ASMIR)
 
 # These are similar to $(LDFLAGS), but with -ccopt/-cclib in front
 # of each one. (Wonder if we could do this automatically)
-LDFLAGS_OCAML = -cclib -lstdc++ -cclib -lboost_serialization -cclib -lboost_iostreams -cclib -lcamlidl -ccopt -Llibasmir/src -cclib -lasmir -ccopt -Lvine/stp -cclib VEX/libvex.a -cclib -lopcodes -cclib -lbfd -cclib -lz -cclib -lsqlite3 -ccopt -L$(PIN_KIT)/extras/xed2-ia32/lib -cclib -lxed
+LDFLAGS_OCAML = -cclib -lstdc++ -cclib -lboost_serialization -cclib -lboost_iostreams -cclib -lcamlidl -ccopt -Lfuzzball/libasmir/src -cclib -lasmir -ccopt -Lvine/stp -cclib VEX/libvex.a -cclib -lopcodes -cclib -lbfd -cclib -lz -cclib -lsqlite3 -ccopt -L$(PIN_KIT)/extras/xed2-ia32/lib -cclib -lxed
 
 ## PIN
 TARGET_COMPILER = gnu
+TARGET := ia32
 INCL = ./include
-PIN_KIT = ./pin-2.8-33586-gcc.3.4.6-ia32_intel64-linux
+PIN_KIT = ./pin-2.13-65163-gcc.4.4.7-linux
+PIN_ROOT = $(PIN_KIT)
 PIN_HOME = $(PIN_KIT)/source/tools
 # This tells the PIN's makefile which build we want (optimized/debug)
 ifeq ($(ENABLE_OPTIMIZED),1)
@@ -26,7 +28,11 @@ DEBUG=0
 else
 DEBUG=1
 endif
-include $(PIN_HOME)/makefile.gnu.config
+CONFIG_ROOT := $(PIN_HOME)/Config
+include $(CONFIG_ROOT)/makefile.config
+# We want to control our own compiler warnings, thank you very much.
+TOOL_CXXFLAGS := $(filter-out -Wall -Werror,$(TOOL_CXXFLAGS))
+
 CXXFLAGS = -I$(INCL) $(DBG) $(OPT) -MMD
 OPTFLAGS := -O3 -s
 DBGFLAGS := -O0 -g3 -gdwarf-2
@@ -35,18 +41,29 @@ override CXXFLAGS+=$(shell if [ -z $(ENABLE_OPTIMIZED) ]; then echo $(DBGFLAGS);
 override CFLAGS+=$(shell if [ -z $(ENABLE_OPTIMIZED) ]; then echo $(DBGFLAGS); else echo $(OPTFLAGS); fi)
 ###
 
+CXXFLAGS += -I$(PIN_KIT)/extras/xed-ia32/include
 LDFLAGS += -L$(PIN_KIT)/extras/xed2-ia32/lib/ -lxed 
 
 OBJs = cfg.o func.o callgraph.o instr.o 
 OBJs += trace.o argv_readparam.o pintracer.o vineir.o static.o serialize.o
 OBJs += AbsDomStridedInterval.o HashFunctions.o Rand.o Utilities.o 
 OBJs += InterProcCFG.o count-coverage.o path-length-test.o RBTest.o
-OBJS += AbsRegion.o RegionTest.o cfgs_for_ocaml.o cfgs_stubs.o 
-OBJS += Registers.o PinDisasm.o dataflow.o
-EXEs = pintracer$(PINTOOL_SUFFIX) vineir stridedtest count-coverage \
-       path-length-test rbtest regiontest static
+OBJs += AbsRegion.o RegionTest.o cfgs_for_ocaml.o cfgs_stubs.o 
+OBJs += Registers.o PinDisasm.o dataflow.o
+EXEs := pintracer$(PINTOOL_SUFFIX) vineir stridedtest count-coverage \
+        path-length-test rbtest regiontest static
 
-all: $(EXEs)
+# all: $(EXEs)
+
+# Pin's Makefiles now give us:
+# all: objects libs dlls apps tools
+
+objects: $(OBJs)
+libs:
+dlls:
+apps: $(EXEs)
+tools:
+
 
 .PHONY: clean
 clean:
@@ -54,18 +71,18 @@ clean:
 	   cfgs_stubs.c cfgs.ml cfgs.mli cfgs.h
 
 %.d: %.c
-	$(CXX) $(CXXFLAGS) $(PIN_CXXFLAGS) -MM -MT '$(patsubst src/%,obj/%,$(patsubst %.c,%.o,$<))' $< > $@
+	$(CXX) $(CXXFLAGS) $(TOOL_CXXFLAGS) -MM -MT '$(patsubst src/%,obj/%,$(patsubst %.c,%.o,$<))' $< > $@
 %.d: %.cc
-	$(CXX) $(CXXFLAGS) $(PIN_CXXFLAGS) -MM -MT '$(patsubst src/%,obj/%,$(patsubst %.cc,%.o,$<))' $< > $@
+	$(CXX) $(CXXFLAGS) $(TOOL_CXXFLAGS) -MM -MT '$(patsubst src/%,obj/%,$(patsubst %.cc,%.o,$<))' $< > $@
 %.d: %.cpp
-	$(CXX) $(CXXFLAGS) $(PIN_CXXFLAGS) -MM -MT '$(patsubst src/%,obj/%,$(patsubst %.cpp,%.o,$<))' $< > $@
+	$(CXX) $(CXXFLAGS) $(TOOL_CXXFLAGS) -MM -MT '$(patsubst src/%,obj/%,$(patsubst %.cpp,%.o,$<))' $< > $@
 
 -include $(OBJs:.o=.d)
 
 %.o: %.cc Makefile
-	${CXX} ${COPT} $(CXXFLAGS) ${CFLAGS} ${PIN_CXXFLAGS} ${OUTOPT}$@ $<
+	${CXX} ${COPT} $(CXXFLAGS) ${TOOL_CXXFLAGS} ${COMP_OBJ}$@ $<
 %.o: %.cpp Makefile
-	${CXX} ${COPT} $(CXXFLAGS) ${CFLAGS} ${PIN_CXXFLAGS} ${OUTOPT}$@ $<
+	${CXX} ${COPT} $(CXXFLAGS) ${TOOL_CXXFLAGS} ${COMP_OBJ}$@ $<
 
 cfgs_stubs.c: cfgs.idl
 	camlidl -header $+
@@ -140,8 +157,8 @@ cfg_fuzzball.dbg: $(VINE_LIBS_DBG) \
 pintracer$(PINTOOL_SUFFIX): trace.o argv_readparam.o pintracer.o \
 	cfg.o func.o callgraph.o instr.o serialize.o PinDisasm.o Utilities.o \
 	$(PIN_LIBNAMES) 
-	${CXX} $(PIN_LDFLAGS) $(LINK_DEBUG) $+ \
-	${LINK_OUT}$@ ${PIN_LPATHS} $(PIN_LIBS) $(EXTRA_LIBS) $(DBG) $(LDFLAGS)
+	${CXX} $(TOOL_LDFLAGS) $(LINK_DEBUG) $+ \
+	${LINK_EXE}$@ ${PIN_LPATHS} $(PIN_LIBS) $(EXTRA_LIBS) $(DBG) $(LDFLAGS)
 
 stridedtest: AbsDomStridedInterval.o HashFunctions.o Rand.o \
 	Utilities.o StridedIntervalTest.cpp

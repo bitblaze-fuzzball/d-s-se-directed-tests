@@ -51,6 +51,7 @@ private:
 	ar & cksum;
 	ar & basicblock;
 	ar & executed;
+	(void)version;
     }
 
 public:

@@ -700,6 +700,7 @@ void VSAInterpreter<T>::visitCallInstr(CallInstr &c) {
 
 template <class T>
 void VSAInterpreter<T>::visitReturnInstr(ReturnInstr &r) {
+    (void)r;
     // define(absdomain::reg::EAX_REG);
 }
 
@@ -964,6 +965,7 @@ template <class T>
 typename VSAInterpreter<T>::VSetPtr
 VSAInterpreter<T>::visitMemExpr(MemExpr& E, VSetPtr adr) {
     assert(!_Base::cur_state->empty() && "Uninitialized state?");
+    (void)E;
     if (DEBUG_LEVEL >= 2) {
         std::cerr << "mem addr " << *adr << std::endl;
     }

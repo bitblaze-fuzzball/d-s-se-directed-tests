@@ -252,6 +252,7 @@ inline bool Region<T>::stronglyUpdatable(rg::RegionTy ty) {
 
 template <typename T>
 inline bool Region<T>::checkWrite(TPtr p, AlocPair ap) {
+    (void)p; (void)ap;
     return true;
 }
 

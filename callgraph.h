@@ -17,6 +17,7 @@ class CallGraphEdge {
     void serialize(Archive & ar, const unsigned int version) {
 	ar & source;
 	ar & target;
+	(void)version;
     }
 
 public:

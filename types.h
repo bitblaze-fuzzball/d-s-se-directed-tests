@@ -13,9 +13,11 @@ class CallGraph;
 typedef unsigned int addr_t;
 typedef unsigned char byte_t;
 
+#if 0
 #warning "Extreme DANGER! These associative containers are sorted " \
     "by pointers and will cause non-determinism, sooner-or-later. " \
     "This is a BIG NO-NO."
+#endif
 
 typedef std::set<Function *> functions_t;
 typedef std::set<BasicBlock *> basicblocks_t;

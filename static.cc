@@ -167,6 +167,7 @@ Function *guess_main() {
 }
 
 void timeout(int a) {
+    (void)a;
     debug("Timeout expired!\nBye bye.\n");
     
     void(*boom)() = NULL; boom(); // :-)

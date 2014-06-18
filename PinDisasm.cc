@@ -3,6 +3,7 @@
 #include "PinDisasm.h"
 #include <pin.H>
 #include <string.h>
+#include <xed-interface.h>
 
 size_t inslen(ADDRINT addr) {
     xed_state_t dstate;
