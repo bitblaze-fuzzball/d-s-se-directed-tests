@@ -31,16 +31,17 @@ restrictive license terms apply: in particular because FuzzBALL is
 released under the GNU GPL, the combined "cfg_fuzzball" executable
 would fall under its terms.)
 
-Our initial release consists of a version of this code roughly as it
+Our initial release consisted of a version of this code roughly as it
 previously was in our internal SVN repository, last updated in
 mid-2011. This version was built and tested with a version of FuzzBALL
 older than any public release, as well as older versions of Pin, the
-dietlibc C library, and other dependencies. It would therefore
-probably not compile out-of-the box with modern versions of these
-tools, or give exactly the same results reported in the ISSTA paper.
-In the future we plan to update this code so it works with a modern
-system, and to provide instructions for compiling and re-running the
-buffer-overflow experiments.
+dietlibc C library, and other dependencies. We've now started the
+process of updating the code to work with modern versions of the
+prerequisite tools. It's at the point where an adventurous soul could
+try compiling and running the tool. We include some sketched
+directions below for compiling the system and re-running the buffer
+overflow benchmarks, but we haven't yet tested that everything works,
+much less that the results are comparable to the paper.
 
 Though we can't promise any detailed technical support (and all three
 developers have moved on to other jobs), feel free to send comments,
@@ -48,3 +49,117 @@ questions, and feedback via the bitblaze-users mailing list (hosted by
 Google Groups):
 
 http://groups.google.com/group/bitblaze-users
+
+------------------------------------------------------------------------
+
+It's a known problem that this build process is still fairly messy.
+
+1. Prerequisite software. You need to download and compile all of the
+following before you try compiling this code:
+
+* 32-bit development environment
+
+  The tools work on 32-bit Linux/x86 binaries, and they currently also
+  expect to be hosted on a 32-bit x86 environment. Most 64-bit
+  (AMD64/Intel 64) Linux kernels can run 32-bit binaries just fine,
+  and gcc and g++ can usually generate 32-bit binaries with the "-m32"
+  option, but you need to make sure that all the libraries you need
+  are 32-bit versions. For instance modern versions of Debian and
+  Ubuntu can install 32-bit libraries in parallel with 64-bit
+  versions:
+
+  https://wiki.debian.org/Multiarch/HOWTO
+
+  Less convenient is OCaml: I don't think it has any equivalent of the
+  "-m32" option. So this means that the distribution-packaged OCaml
+  compiler on a 64-bit machine will not work to compile 32-bit
+  FuzzBALL binaries. Alternatives include using a full 32-bit VM,
+  using a lighter-weight virtualization like a chroot environment (the
+  "proot" tool is also useful in the regard), or recompiling OCaml
+  from source.
+
+* FuzzBALL, as obtained from
+
+  git clone https://github.com/bitblaze-fuzzball/fuzzball.git
+
+  Should exist (perhaps as a symlink) as the subdirectory "fuzzball"
+  of this directory. This is used in two ways: FuzzBALL's copy of the
+  libasmir C++ library is used by the C++ static analysis, and
+  FuzzBALL the symbolic execution engine proper is augmented with CFG
+  and static analysis result information to create an enhanced
+  "cfg_fuzzball" tool.
+
+* VEX and STP
+
+  These are also prerequisites for FuzzBALL, see its INSTALL file for
+  more information. VEX should exist as a "VEX" subdirectory of this
+  directory, and the STP binary should be in fuzzball/stp/stp.
+
+* GNU Binutils
+
+  Also as needed for FuzzBALL. If you're using a system-installed
+  version (e.g. the binutils-dev package of Debian/Ubuntu, supplements
+  with libiberty-dev in recent versions), everything should be
+  automatic. If you compiled a version from source, you should set up
+  its installation directory as "binutils" so that include files and
+  libraries can be found in binutils/include and binutils/lib. If you
+  have both a system-installed and a self-installed version of the
+  Binutils, things will be easiest if they're compatible versions:
+  both linking errors and crashes can occur if the Binutils header
+  files don't match the library.
+
+* Boost libraries
+
+  "serialization" and "iostreams". These are
+  libbost-{serialization,iostreams}-dev in Debian and Ubuntu. If you
+  compile them yourself, you can link the installation (or "staging")
+  area as the subdirectory "boost".
+
+* Pin
+
+  Download revision 65163 from pintool.org and unpack it as a
+  subdirectory of this directory.
+
+2. Build process
+
+   "make".
+
+3. The tools:
+
+   * pintracer.so is the Pin-based tool that constructs a CFG from
+   observing a program execution and then optionally augments the CFG
+   with recursive disassembly. The script trace.sh is a more
+   user-friendly wrapper, and README.pintrace has some more
+   information.
+
+   * static is the static analysis tool that operates over a CFG and
+   looks for potential vulnerabilities. Note that the directory
+   /tmp/yyy must exist and be writable because the tool stores a graph
+   of the callgraph there for debugging purposes (obviously this
+   interface could be improved).
+
+   * cfg_fuzzball is a version of FuzzBALL augmented with support for
+   reading in the CFG produced by the above tool and using it to guide
+   the search for a vulnerability. Its usage is similar to regular
+   FuzzBALL, except for some extra options.
+
+4. Zitser-et-al-derived buffer-overflow benchmarks
+
+We haven't yet tested regenerating the binaries from source code and
+an appropriate dietlibc version. But the old binaries are available
+with a "-svn" extension, so you can put them into position with:
+
+   for a in `find vulapps -name '*-svn'`; do cp $a ${a%-svn}; done
+
+The Makefile script "./analyze" will run the CFG generation and static
+analysis parts of the experiments. "./analyze" to run them, "./analyze
+clean" to remove static analysis results before rerunning, and
+"./analyze clean-all" to remove everything.
+
+The Perl script "run-fuzzball.pl" runs the baseline-FuzzBALL
+vs. cfg_fuzzball parts of the experiment. The first argument is an
+abbreviated benchmark identifier (b1, s2, f3, etc.), and the second
+argument is 0 for a directed run or 1 for an undirected one: it will
+run the experiment 5 times with a 6hr timeout each time. The script
+"tabulate-fuzzball-results.pl" will then parse those results into a
+table somewhat like the right half of the paper's Table 1.

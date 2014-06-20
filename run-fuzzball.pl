@@ -7,7 +7,7 @@ use IO::Handle;
 my $pwd = getcwd;
 
 my $fuzzball = "$pwd/cfg_fuzzball";
-my $stp = "$pwd/stp";
+my $stp = "$pwd/fuzzball/stp/stp";
 my $static_results = "$pwd/cfg/MIT";
 my $apps_dir = "$pwd/vulapps";
 my $plt = "$pwd/path-length-test";
@@ -72,8 +72,7 @@ my %inputs =
 my @base_flags =
   ("-linux-syscalls",
    "-trace-syscalls",
-#   "-stp-path" => $stp,
-   "-solver" => "z3vc",
+   "-stp-path" => $stp,
    "-trace-iterations",
    "-trace-assigns-string",
    "-trace-stopping",

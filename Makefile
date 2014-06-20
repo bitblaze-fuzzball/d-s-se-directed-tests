@@ -13,7 +13,7 @@ LDFLAGS += $(LDFLAGS_ASMIR)
 
 # These are similar to $(LDFLAGS), but with -ccopt/-cclib in front
 # of each one. (Wonder if we could do this automatically)
-LDFLAGS_OCAML = -cclib -lstdc++ -cclib -lboost_serialization -cclib -lboost_iostreams -cclib -lcamlidl -ccopt -Lfuzzball/libasmir/src -cclib -lasmir -ccopt -Lvine/stp -cclib VEX/libvex.a -cclib -lopcodes -cclib -lbfd -cclib -lz -cclib -lsqlite3 -ccopt -L$(PIN_KIT)/extras/xed2-ia32/lib -cclib -lxed
+LDFLAGS_OCAML = -cclib -lstdc++ -cclib -lboost_serialization -cclib -lboost_iostreams -cclib -lcamlidl -ccopt -Lfuzzball/libasmir/src -cclib -lasmir -ccopt -Lfuzzball/stp -cclib VEX/libvex.a -cclib -lopcodes -cclib -lbfd -cclib -lz -cclib -lsqlite3 -ccopt -L$(PIN_KIT)/extras/xed2-ia32/lib -cclib -lxed
 
 ## PIN
 TARGET_COMPILER = gnu
@@ -95,24 +95,14 @@ cfgs.ml: cfgs.idl
 cfgs.mli: cfgs.idl
 	camlidl -header $+
 
-# Check out https://bullseye.cs.berkeley.edu/svn/vine/projects/z3
-# to vine/projects/z3, create a symlink "trunk -> ." inside vine,
-# and then do "make" in vine/projects/z3.
+OCAMLINCLUDES := -I fuzzball/execution -I fuzzball/ocaml -I fuzzball/trace \
+                 -I fuzzball/stp/ocaml
 
-Z3_DIR = vine/projects/z3/z3-2.15-32bit/z3
+VINE_LIBS := fuzzball/stp/ocaml/stpvc.cmxa fuzzball/ocaml/vine.cmxa \
+             fuzzball/trace/trace.cmxa fuzzball/execution/execution.cmxa
 
-LDFLAGS_Z3 = -ccopt -L$(Z3_DIR)/lib -ccopt -L$(Z3_DIR)/ocaml \
-             -cclib $(Z3_DIR)/lib/libz3.a -cclib -lgmp
-
-OCAMLINCLUDES := -I vine/execution -I vine/ocaml -I vine/trace \
-                 -I vine/stp/ocaml -I vine/projects/z3
-
-VINE_LIBS := vine/stp/ocaml/stpvc.cmxa vine/ocaml/vine.cmxa \
-             vine/trace/trace.cmxa vine/execution/execution.cmxa \
-	     $(Z3_DIR)/ocaml/z3.cmxa
-VINE_LIBS_DBG := vine/stp/ocaml/stpvc.cma vine/ocaml/vine.cma \
-                 vine/trace/trace.cma vine/execution/execution.cma \
-	         $(Z3_DIR)/ocaml/z3.cma
+VINE_LIBS_DBG := fuzzball/stp/ocaml/stpvc.cma fuzzball/ocaml/vine.cma \
+                 fuzzball/trace/trace.cma fuzzball/execution/execution.cma
 
 VINE_PKGS := -package str,ocamlgraph,extlib,unix
 
@@ -137,30 +127,26 @@ cfg_fuzzball.cmx: cfgs.cmi
 cfg_fuzzball.cmo: cfgs.cmi
 
 cfg_fuzzball: $(VINE_LIBS) \
-           vine/projects/z3/z3vc.cmx \
-	   vine/projects/z3/z3vc_query_engine.cmx \
            cfg_fuzzball.cmx cfgs.cmx \
            cfgs_stubs.o cfgs_for_ocaml.o PinDisasm.o \
            cfg.o func.o callgraph.o instr.o serialize.o InterProcCFG.o \
 		   Utilities.o
 	ocamlfind ocamlopt -o $@ $(OCAMLINCLUDES) $(VINE_PKGS) -linkpkg \
-          $+ $(LDFLAGS_OCAML) $(LDFLAGS_Z3)
+          $+ $(LDFLAGS_OCAML)
 
 cfg_fuzzball.dbg: $(VINE_LIBS_DBG) \
-           vine/projects/z3/z3vc.cmo \
-	   vine/projects/z3/z3vc_query_engine.cmo \
            cfg_fuzzball.cmo cfgs.cmo \
            cfgs_stubs.o cfgs_for_ocaml.o PinDisasm.o \
            cfg.o func.o callgraph.o instr.o serialize.o InterProcCFG.o \
 		   Utilities.o
 	ocamlfind ocamlc -g -o $@ $(OCAMLINCLUDES) $(VINE_PKGS) -linkpkg \
-          $+ $(LDFLAGS_OCAML) $(LDFLAGS_Z3)
+          $+ $(LDFLAGS_OCAML)
 
 pintracer$(PINTOOL_SUFFIX): trace.o argv_readparam.o pintracer.o \
 	cfg.o func.o callgraph.o instr.o serialize.o PinDisasm.o Utilities.o \
 	$(PIN_LIBNAMES) 
-	${CXX} $(TOOL_LDFLAGS) $(LINK_DEBUG) $+ \
-	${LINK_EXE}$@ ${PIN_LPATHS} $(PIN_LIBS) $(EXTRA_LIBS) $(DBG) $(LDFLAGS)
+	${CXX} $(TOOL_LDFLAGS) $(TOOL_LPATHS) $(LINK_DEBUG) $+ \
+	${LINK_EXE}$@ ${PIN_LPATHS} $(TOOL_LIBS) $(PIN_LIBS) $(EXTRA_LIBS) $(DBG) $(LDFLAGS)
 
 stridedtest: AbsDomStridedInterval.o HashFunctions.o Rand.o \
 	Utilities.o StridedIntervalTest.cpp

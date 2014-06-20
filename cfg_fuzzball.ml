@@ -571,8 +571,6 @@ let main argv =
     Exec_set_options.default_on_missing := (fun fm -> fm#on_missing_symbol);
     Exec_set_options.apply_cmdline_opts_early fm dl;
     Options_linux.apply_linux_cmdline_opts fm;
-    Hashtbl.add Options_solver.solvers_table "z3vc"
-      (fun _ -> Some new Z3vc_query_engine.z3vc_engine);
     Options_solver.apply_solver_cmdline_opts fm;
     State_loader.apply_state_loader_cmdline_opts fm;
     Exec_set_options.apply_cmdline_opts_late fm;
