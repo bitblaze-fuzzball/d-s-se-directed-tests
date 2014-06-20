@@ -3,7 +3,7 @@
 # ENABLE_OPTIMIZED=1 make   --- builds an optimized build
 
 CFLAGS_ASMIR = -Ifuzzball/libasmir -Ifuzzball/libasmir/src/include -IVEX/pub -Ibinutils/include
-LDFLAGS_ASMIR = fuzzball/libasmir/src/libasmir.a VEX/libvex.a -lopcodes -lbfd -lz -lsqlite3
+LDFLAGS_ASMIR = fuzzball/libasmir/src/libasmir.a VEX/libvex.a -Lbinutils/lib -lopcodes -lbfd -liberty -lz
 NDEBUG:=$(shell if [ ! -z $(DISABLE_ASSERTIONS) ]; then echo "-DNDEBUG"; fi)
 CFLAGS = -Wall -Wno-deprecated -Wextra -pipe -ffloat-store -Wno-unused $(NDEBUG)
 LDFLAGS = -Lboost/lib -lboost_serialization -lboost_iostreams
@@ -18,6 +18,8 @@ LDFLAGS_OCAML = -cclib -lstdc++ -cclib -lboost_serialization -cclib -lboost_iost
 ## PIN
 TARGET_COMPILER = gnu
 TARGET := ia32
+CFLAGS += -m32
+TOOL_LDFLAGS += -m32
 INCL = ./include
 PIN_KIT = ./pin-2.13-65163-gcc.4.4.7-linux
 PIN_ROOT = $(PIN_KIT)
@@ -185,4 +187,4 @@ path-length-test: path-length-test.o cfg.o func.o callgraph.o instr.o \
 	${CXX} ${CXXFLAGS} $+ -o $@ $(LDFLAGS) -lboost_program_options
 
 vineir: vineir.o
-	${CXX} $+ -o $@ $(LDFLAGS)
+	${CXX} -o $@ ${CXXFLAGS} $+ $(LDFLAGS)

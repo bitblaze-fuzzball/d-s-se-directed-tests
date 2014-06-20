@@ -120,6 +120,7 @@ protected:
 		entry_vertex = boost::graph_traits<graph_t>::null_vertex();
 	    }
 	}
+	(void)version;
     }
 
     // Internal functions to access/manipulate vertices

@@ -30,6 +30,7 @@ private:
 	ar & name;
 	ar & module;
 	ar & cfg;
+	(void)version;
     }
 
     void guessArgumentsNo();

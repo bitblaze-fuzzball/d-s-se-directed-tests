@@ -662,8 +662,8 @@ StridedIntervalPtr StridedInterval::operator*(StridedInterval& i){
         return getTop();
     }
 
-    const int op1[4] = {lo, lo, hi-strd, hi-strd};
-    const int op2[4] = {i.lo, i.hi-i.strd, i.lo, i.hi-i.strd};
+    const int op1[4] = {lo, lo, (int)(hi-strd), (int)(hi-strd)};
+    const int op2[4] = {i.lo, (int)(i.hi-i.strd), i.lo, (int)(i.hi-i.strd)};
     int minLo = INT_MAX;
     int maxHi = INT_MIN;
 
@@ -836,8 +836,8 @@ StridedIntervalPtr StridedInterval::sdivide(StridedInterval& i) {
         return getBot();
     }
 
-    const int op1[4] = {lo, lo, hi-strd, hi-strd};
-    const int op2[4] = {i.lo, i.hi-i.strd, i.lo, i.hi-i.strd};
+    const int op1[4] = {lo, lo, (int)(hi-strd), (int)(hi-strd)};
+    const int op2[4] = {i.lo, (int)(i.hi-i.strd), i.lo, (int)(i.hi-i.strd)};
     int minLo = INT_MAX;
     int maxHi = INT_MIN;
 
@@ -910,8 +910,8 @@ StridedIntervalPtr StridedInterval::smod(StridedInterval& i) {
         return getBot();
     }
 
-    const int op1[4] = {lo, lo, hi-strd, hi-strd};
-    const int op2[4] = {i.lo, i.hi-i.strd, i.lo, i.hi-i.strd};
+    const int op1[4] = {lo, lo, (int)(hi-strd), (int)(hi-strd)};
+    const int op2[4] = {i.lo, (int)(i.hi-i.strd), i.lo, (int)(i.hi-i.strd)};
     int minLo = INT_MAX;
     int maxHi = INT_MIN;
 
@@ -976,8 +976,8 @@ StridedIntervalPtr StridedInterval::lshift(StridedInterval& i) {
         return getBot();
     }
 
-    const int op1[4] = {lo, lo, hi-strd, hi-strd};
-    const int op2[4] = {i.lo, i.hi-i.strd, i.lo, i.hi-i.strd};
+    const int op1[4] = {lo, lo, (int)(hi-strd), (int)(hi-strd)};
+    const int op2[4] = {i.lo, (int)(i.hi-i.strd), i.lo, (int)(i.hi-i.strd)};
     int minLo = INT_MAX;
     int maxHi = INT_MIN;
 
@@ -1047,8 +1047,8 @@ StridedIntervalPtr StridedInterval::arshift(StridedInterval& i) {
         return getTop();
     }
 
-    const int op1[4] = {lo, lo, hi-strd, hi-strd};
-    const int op2[4] = {i.lo, i.hi-i.strd, i.lo, i.hi-i.strd};
+    const int op1[4] = {lo, lo, (int)(hi-strd), (int)(hi-strd)};
+    const int op2[4] = {i.lo, (int)(i.hi-i.strd), i.lo, (int)(i.hi-i.strd)};
     int minLo = INT_MAX;
     int maxHi = INT_MIN;
 

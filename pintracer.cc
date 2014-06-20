@@ -256,6 +256,7 @@ static void hook_return(THREADID tid, ADDRINT instrptr,
     ADDRINT funcaddr;
     ADDRINT caller;
     ADDRINT retaddr = *((ADDRINT *) stackptr);
+    (void)retval;
 
     // Skip code executed before the main
     if (!main_stackptr)
@@ -303,6 +304,7 @@ static void hook_cpuid(THREADID tid, ADDRINT instrptr, CONTEXT *ctx,
     // instruction
     static ADDRINT eax;
     ADDRINT ecx, edx;
+    (void)tid;
 
     bytes = (unsigned char *) instrptr;
     assert(bytes[0] == 0x0f && bytes[1] == 0xa2);
@@ -342,6 +344,7 @@ static void hook_instruction(THREADID tid, ADDRINT instrptr, USIZE len,
 			     ADDRINT stackptr, UINT32 pos, UINT32 isret) {
     Function *func;
     Cfg *cfg;
+    (void)stackptr;
 
     // Skip code executed before the main
     if (!main_stackptr)
@@ -397,6 +400,7 @@ static void hook_fini(INT32 c, void *v) {
     FILE *f;
     char tmp[PATH_MAX];
     // Graph<BasicBlock *, BasicBlockEdge *>::vertex_const_iterator bbit;
+    (void)c; (void)v;
 
     stderr = DEBUG_FILE;
 
@@ -483,6 +487,7 @@ static void hook_fini(INT32 c, void *v) {
 // ****************************************************************************
 
 static void instrument_trace(TRACE trace, void *v) {
+    (void)v;
     for(BBL bbl = TRACE_BblHead(trace); BBL_Valid(bbl); bbl = BBL_Next(bbl)) {
 	for(INS ins = BBL_InsHead(bbl); INS_Valid(ins); ins = INS_Next(ins)) {  
 	    ADDRINT addr = INS_Address(ins);
@@ -542,6 +547,7 @@ static void instrument_trace(TRACE trace, void *v) {
 // ****************************************************************************
 
 static void instrument_image(IMG img, void *v) {
+    (void)v;
     static bool main_rtn_instrumented = false;
 
     if(!main_rtn_instrumented) {
@@ -618,6 +624,7 @@ static void instrument_image(IMG img, void *v) {
 // This is used to ensure that the program runs a single thread. We do not want
 // to deal with multithreaded programs.
 VOID instrument_thread(THREADID tid, CONTEXT *ctxt, INT32 flags, VOID *v) {
+    (void)ctxt; (void)flags; (void)v;
     if (threadid == 0) {
 	threadid = tid;
     } else {

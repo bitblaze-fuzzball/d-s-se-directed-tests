@@ -40,6 +40,7 @@ private:
 	ar & bytes;
 	ar & name;
 	ar & allocated;
+	(void)version;
     }
 
     Section() {;}
@@ -112,6 +113,7 @@ private:
 	ar & size;
 	ar & mainexe;
 	ar & name;
+	(void)version;
     }
 
 public:
@@ -136,6 +138,7 @@ private:
 	ar & sections;
 	ar & modules;
 	ar & callgraph;
+	(void)version;
     }
 
 public:

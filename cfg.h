@@ -28,6 +28,7 @@ private:
 	ar & address;
 	ar & instructions;
 	ar & cfg;
+	(void)version;
     }
 
 public:
