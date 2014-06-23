@@ -3,17 +3,23 @@
 # ENABLE_OPTIMIZED=1 make   --- builds an optimized build
 
 CFLAGS_ASMIR = -Ifuzzball/libasmir -Ifuzzball/libasmir/src/include -IVEX/pub -Ibinutils/include
-LDFLAGS_ASMIR = fuzzball/libasmir/src/libasmir.a VEX/libvex.a -Lbinutils/lib -lopcodes -lbfd -liberty -lz
+LDFLAGS_ASMIR = -Lbinutils/lib
+LIBS_ASMIR = fuzzball/libasmir/src/libasmir.a VEX/libvex.a -lopcodes -lbfd -liberty -lz
 NDEBUG:=$(shell if [ ! -z $(DISABLE_ASSERTIONS) ]; then echo "-DNDEBUG"; fi)
-CFLAGS = -Wall -Wno-deprecated -Wextra -pipe -ffloat-store -Wno-unused $(NDEBUG)
-LDFLAGS = -Lboost/lib -lboost_serialization -lboost_iostreams
+CFLAGS = -Wall -Wno-deprecated -Wextra -pipe -ffloat-store -Wno-unused $(NDEBUG) -Iboost/include
+LDFLAGS = -Lboost/lib -Wl,-rpath `pwd`/boost/lib
+LIBS = -lboost_serialization -lboost_iostreams -lbz2
 
 CFLAGS += $(CFLAGS_ASMIR)
 LDFLAGS += $(LDFLAGS_ASMIR)
+LIBS += $(LIBS_ASMIR)
+
+CFLAGS += -Iinclude
+LDFLAGS += -Llib
 
 # These are similar to $(LDFLAGS), but with -ccopt/-cclib in front
 # of each one. (Wonder if we could do this automatically)
-LDFLAGS_OCAML = -cclib -lstdc++ -cclib -lboost_serialization -cclib -lboost_iostreams -cclib -lcamlidl -ccopt -Lfuzzball/libasmir/src -cclib -lasmir -ccopt -Lfuzzball/stp -cclib VEX/libvex.a -cclib -lopcodes -cclib -lbfd -cclib -lz -cclib -lsqlite3 -ccopt -L$(PIN_KIT)/extras/xed2-ia32/lib -cclib -lxed
+LDFLAGS_OCAML = -cclib -lstdc++ -ccopt -Llib -ccopt -Lboost/lib -ccopt -Wl,-rpath=`pwd`/boost/lib  -cclib -lboost_serialization -cclib -lboost_iostreams -cclib -lcamlidl -ccopt -Lfuzzball/libasmir/src -cclib -lasmir -ccopt -Lfuzzball/stp -cclib VEX/libvex.a -cclib -lopcodes -cclib -lbfd -cclib -lz -ccopt -L$(PIN_KIT)/extras/xed2-ia32/lib -cclib -lxed -cclib -lbz2
 
 ## PIN
 TARGET_COMPILER = gnu
@@ -44,7 +50,8 @@ override CFLAGS+=$(shell if [ -z $(ENABLE_OPTIMIZED) ]; then echo $(DBGFLAGS); e
 ###
 
 CXXFLAGS += -I$(PIN_KIT)/extras/xed-ia32/include
-LDFLAGS += -L$(PIN_KIT)/extras/xed2-ia32/lib/ -lxed 
+LDFLAGS += -L$(PIN_KIT)/extras/xed2-ia32/lib/
+LIBS += -lxed
 
 OBJs = cfg.o func.o callgraph.o instr.o 
 OBJs += trace.o argv_readparam.o pintracer.o vineir.o static.o serialize.o
@@ -104,7 +111,7 @@ VINE_LIBS := fuzzball/stp/ocaml/stpvc.cmxa fuzzball/ocaml/vine.cmxa \
 VINE_LIBS_DBG := fuzzball/stp/ocaml/stpvc.cma fuzzball/ocaml/vine.cma \
                  fuzzball/trace/trace.cma fuzzball/execution/execution.cma
 
-VINE_PKGS := -package str,ocamlgraph,extlib,unix
+VINE_PKGS := -package str,extlib,unix
 
 %.cmi: %.mli
 	ocamlopt $(OCAMLINCLUDES) -o $@ -c $+
@@ -145,32 +152,32 @@ cfg_fuzzball.dbg: $(VINE_LIBS_DBG) \
 pintracer$(PINTOOL_SUFFIX): trace.o argv_readparam.o pintracer.o \
 	cfg.o func.o callgraph.o instr.o serialize.o PinDisasm.o Utilities.o \
 	$(PIN_LIBNAMES) 
-	${CXX} $(TOOL_LDFLAGS) $(TOOL_LPATHS) $(LINK_DEBUG) $+ \
-	${LINK_EXE}$@ ${PIN_LPATHS} $(TOOL_LIBS) $(PIN_LIBS) $(EXTRA_LIBS) $(DBG) $(LDFLAGS)
+	${CXX} $(LDFLAGS) $(TOOL_LDFLAGS) $(TOOL_LPATHS) $(LINK_DEBUG) $+ \
+	 ${LINK_EXE}$@ ${PIN_LPATHS} $(TOOL_LIBS) $(PIN_LIBS) $(EXTRA_LIBS) $(LIBS) $(DBG)
 
 stridedtest: AbsDomStridedInterval.o HashFunctions.o Rand.o \
 	Utilities.o StridedIntervalTest.cpp
-	${CXX} -o $@ ${CXXFLAGS} $+ $(LDFLAGS)
+	${CXX} -o $@ ${CXXFLAGS} $+ $(LDFLAGS) $(LIBS)
 
 rbtest: RBTest.o
-	${CXX} -o $@ ${CXXFLAGS} $+ $(LDFLAGS)
+	${CXX} -o $@ ${CXXFLAGS} $+ $(LDFLAGS) $(LIBS)
 
 regiontest: AbsDomStridedInterval.o Utilities.o HashFunctions.o Rand.o \
 	AbsRegion.o RegionTest.o Registers.o
-	${CXX} -o $@ ${CXXFLAGS} $+ $(LDFLAGS)
+	${CXX} -o $@ ${CXXFLAGS} $+ $(LDFLAGS) $(LIBS)
 
 static: static.o cfg.o func.o callgraph.o instr.o serialize.o AbsRegion.o \
 	AbsDomStridedInterval.o Utilities.o HashFunctions.o Rand.o \
 	Registers.o PinDisasm.o dataflow.o
-	${CXX} ${CXXFLAGS} $+ -o $@ $(LDFLAGS) -lboost_program_options
+	${CXX} ${CXXFLAGS} $+ -o $@ $(LDFLAGS) -lboost_program_options $(LIBS)
 
 count-coverage: count-coverage.o cfg.o func.o callgraph.o instr.o serialize.o \
 	PinDisasm.o Utilities.o
-	${CXX} ${CXXFLAGS} $+ -o $@ $(LDFLAGS) -lboost_program_options
+	${CXX} ${CXXFLAGS} $+ -o $@ $(LDFLAGS) -lboost_program_options $(LIBS)
 
 path-length-test: path-length-test.o cfg.o func.o callgraph.o instr.o \
 	serialize.o InterProcCFG.o PinDisasm.o Utilities.o
-	${CXX} ${CXXFLAGS} $+ -o $@ $(LDFLAGS) -lboost_program_options
+	${CXX} ${CXXFLAGS} $+ -o $@ $(LDFLAGS) -lboost_program_options $(LIBS)
 
 vineir: vineir.o
-	${CXX} -o $@ ${CXXFLAGS} $+ $(LDFLAGS)
+	${CXX} -o $@ ${CXXFLAGS} $+ $(LDFLAGS) $(LIBS)

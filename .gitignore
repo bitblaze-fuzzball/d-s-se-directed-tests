@@ -39,3 +39,5 @@ vulapps/sendmail/s7/txtdns-bad-diet
 vulapps/wu-ftpd/f1/mp-bad-mylibc-diet
 vulapps/wu-ftpd/f2/obo-bad-diet
 vulapps/wu-ftpd/f3/rp-bad-diet
+include
+lib

@@ -27,7 +27,7 @@ else
     PROG="$(which $1)"
     shift 1
     export LD_BIND_NOW=1
-    $PIN -t pintracer.so $PIN_ARGS -- "$PROG" $*
+    $PIN -injection child -t pintracer.so $PIN_ARGS -- "$PROG" $*
     ret=$?
 
     if [ $ret -eq 0 ]

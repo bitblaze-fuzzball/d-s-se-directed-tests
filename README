@@ -52,7 +52,27 @@ http://groups.google.com/group/bitblaze-users
 
 ------------------------------------------------------------------------
 
-It's a known problem that this build process is still fairly messy.
+It's a known problem that this build process is still fairly messy. In
+particular there's no "configure"-style script or separate Makefile
+section for you to specify the location of the various required
+software. For software that's is already packaged for your Linux
+distribution, using those packages to install it in standard locations
+like /usr/include and /usr/lib is the path of least resistance. When
+that's not possible, the current approach is to put the needed
+software in subdirectories of this source directory with well-known
+names, which you can often conveniently do with a symbolic link.
+Several specific locations for different pieces of required software
+are mentioned below, and there are also generic subdirectories
+"include" and "lib" into which you can put header files and libraries
+respectively. (In other words, the Makefile does "-I include" and "-L
+lib" to the C compiler.) With non-installed libraries it's also
+usually most convenient to use the statically-linked versions
+(libfoo.a instead of libfoo.so) to avoid making sure the libraries can
+be found and runtime. But if you do link with shared libraries in
+non-standard locations, you can help them be found either by setting
+the LD_LIBRARY_PATH environment variable or by passing the "-rpath"
+option to the linker. The Makefile shows an example of how to do the
+latter with "boost/lib".
 
 1. Prerequisite software. You need to download and compile all of the
 following before you try compiling this code:
@@ -76,7 +96,22 @@ following before you try compiling this code:
   FuzzBALL binaries. Alternatives include using a full 32-bit VM,
   using a lighter-weight virtualization like a chroot environment (the
   "proot" tool is also useful in the regard), or recompiling OCaml
-  from source.
+  from source. Compiling OCaml and all the needed OCaml packages from
+  source is cumbersome, but we had success configuring OCaml 3.12.1
+  with:
+
+  ./configure -cc "gcc -m32" -as "as --32" -aspp "gcc -m32 -c" \
+    -prefix <...> -host i386-linux-gnu -partialld "ld -r -melf_i386"
+
+  (n.b. the needed -partialld option is missing from the instructions
+  in this version).
+
+  To compile FuzzBALL in 32-bit mode, in additional to using a 32-bit
+  OCaml as described above, you should also pass the options
+
+    CC="gcc -m32" CXX="g++ -m32"
+
+  to *both* "configure" and "make".
 
 * FuzzBALL, as obtained from
 
