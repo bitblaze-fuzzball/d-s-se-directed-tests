@@ -60,7 +60,7 @@ OBJs += InterProcCFG.o count-coverage.o path-length-test.o RBTest.o
 OBJs += AbsRegion.o RegionTest.o cfgs_for_ocaml.o cfgs_stubs.o 
 OBJs += Registers.o PinDisasm.o dataflow.o
 EXEs := pintracer$(PINTOOL_SUFFIX) vineir stridedtest count-coverage \
-        path-length-test rbtest regiontest static
+        path-length-test rbtest regiontest static cfg_fuzzball
 
 # all: $(EXEs)
 
