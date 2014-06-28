@@ -7,7 +7,7 @@ LDFLAGS_ASMIR = -Lbinutils/lib
 LIBS_ASMIR = fuzzball/libasmir/src/libasmir.a VEX/libvex.a -lopcodes -lbfd -liberty -lz
 NDEBUG:=$(shell if [ ! -z $(DISABLE_ASSERTIONS) ]; then echo "-DNDEBUG"; fi)
 CFLAGS = -Wall -Wno-deprecated -Wextra -pipe -ffloat-store -Wno-unused $(NDEBUG) -Iboost/include
-LDFLAGS = -Lboost/lib -Wl,-rpath `pwd`/boost/lib
+LDFLAGS = -Lboost/lib # -Wl,-rpath `pwd`/boost/lib
 LIBS = -lboost_serialization -lboost_iostreams -lbz2
 
 CFLAGS += $(CFLAGS_ASMIR)
@@ -19,7 +19,7 @@ LDFLAGS += -Llib
 
 # These are similar to $(LDFLAGS), but with -ccopt/-cclib in front
 # of each one. (Wonder if we could do this automatically)
-LDFLAGS_OCAML = -cclib -lstdc++ -ccopt -Llib -ccopt -Lboost/lib -ccopt -Wl,-rpath=`pwd`/boost/lib  -cclib -lboost_serialization -cclib -lboost_iostreams -cclib -lcamlidl -ccopt -Lfuzzball/libasmir/src -cclib -lasmir -ccopt -Lfuzzball/stp -cclib VEX/libvex.a -cclib -lopcodes -cclib -lbfd -cclib -lz -ccopt -L$(PIN_KIT)/extras/xed2-ia32/lib -cclib -lxed -cclib -lbz2
+LDFLAGS_OCAML = -cclib -lstdc++ -ccopt -Llib -ccopt -Lboost/lib -cclib -lboost_serialization -cclib -lboost_iostreams -cclib -lcamlidl -ccopt -Lfuzzball/libasmir/src -cclib -lasmir -ccopt -Lfuzzball/stp -cclib VEX/libvex.a -cclib -lopcodes -cclib -lbfd -cclib -lz -ccopt -L$(PIN_KIT)/extras/xed2-ia32/lib -cclib -lxed -cclib -lbz2 # -ccopt -Wl,-rpath=`pwd`/boost/lib
 
 ## PIN
 TARGET_COMPILER = gnu

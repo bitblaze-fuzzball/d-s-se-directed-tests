@@ -72,7 +72,8 @@ be found and runtime. But if you do link with shared libraries in
 non-standard locations, you can help them be found either by setting
 the LD_LIBRARY_PATH environment variable or by passing the "-rpath"
 option to the linker. The Makefile shows an example of how to do the
-latter with "boost/lib".
+latter with "boost/lib", but it's commented out (sometimes linkers
+don't like it if the directory does not exist).
 
 1. Prerequisite software. You need to download and compile all of the
 following before you try compiling this code:
