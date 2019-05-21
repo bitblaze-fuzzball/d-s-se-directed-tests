@@ -41,3 +41,5 @@ vulapps/wu-ftpd/f2/obo-bad-diet
 vulapps/wu-ftpd/f3/rp-bad-diet
 include
 lib
+make-cfg
+*.orig

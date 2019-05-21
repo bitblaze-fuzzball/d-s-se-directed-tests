@@ -58,9 +58,9 @@ OBJs += trace.o argv_readparam.o pintracer.o vineir.o static.o serialize.o
 OBJs += AbsDomStridedInterval.o HashFunctions.o Rand.o Utilities.o 
 OBJs += InterProcCFG.o count-coverage.o path-length-test.o RBTest.o
 OBJs += AbsRegion.o RegionTest.o cfgs_for_ocaml.o cfgs_stubs.o 
-OBJs += Registers.o PinDisasm.o dataflow.o
+OBJs += Registers.o PinDisasm.o dataflow.o make-cfg.o
 EXEs := pintracer$(PINTOOL_SUFFIX) vineir stridedtest count-coverage \
-        path-length-test rbtest regiontest static cfg_fuzzball
+        path-length-test rbtest regiontest static cfg_fuzzball make-cfg
 
 # all: $(EXEs)
 
@@ -189,3 +189,7 @@ path-length-test: path-length-test.o cfg.o func.o callgraph.o instr.o \
 
 vineir: vineir.o
 	${CXX} -o $@ ${CXXFLAGS} $+ $(LDFLAGS) $(LIBS)
+
+make-cfg: make-cfg.o cfg.o func.o callgraph.o instr.o serialize.o \
+	Utilities.o PinDisasm.o argv_readparam.o
+	${CXX} ${CXXFLAGS} $+ -o $@ $(LDFLAGS) $(LIBS) -lelf

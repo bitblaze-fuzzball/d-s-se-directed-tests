@@ -607,9 +607,10 @@ void Cfg::sanityCheck(bool aggressive) {
 #endif
 }
 
-int disassemble(addr_t addr, addr_t &next1, addr_t &next2, 
-		xed_category_enum_t &category, char *buf = NULL, 
-		size_t bufsize = 0) {
+int
+disassemble_from(addr_t addr, byte_t *code, addr_t &next1, addr_t &next2,
+		 xed_category_enum_t &category, char *buf = NULL,
+		 size_t bufsize = 0) {
     xed_state_t dstate;
     xed_decoded_inst_t xedd;
     xed_error_enum_t xed_error;
@@ -624,7 +625,7 @@ int disassemble(addr_t addr, addr_t &next1, addr_t &next2,
                    XED_ADDRESS_WIDTH_32b);
 
     xed_decoded_inst_zero_set_mode(&xedd, &dstate);
-    xed_error = xed_decode(&xedd, (const xed_uint8_t*) addr, 16);
+    xed_error = xed_decode(&xedd, code, 16);
     assert(xed_error == XED_ERROR_NONE);
 
     const xed_inst_t *inst= xed_decoded_inst_inst(&xedd);
@@ -675,6 +676,12 @@ int disassemble(addr_t addr, addr_t &next1, addr_t &next2,
     return len; 
 }
 
+int disassemble(addr_t addr, addr_t &next1, addr_t &next2,
+		xed_category_enum_t &category, char *buf = NULL,
+		size_t bufsize = 0) {
+    return disassemble_from(addr, (byte_t *)addr,
+			    next1, next2, category, buf, bufsize);
+}
 
 void Cfg::augmentCfg(std::list<std::pair<addr_t, addr_t> > &wlist, 
 		     std::set<addr_t> &done, 
