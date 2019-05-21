@@ -106,12 +106,18 @@ OCAMLINCLUDES := -I fuzzball/execution -I fuzzball/ocaml -I fuzzball/trace \
                  -I fuzzball/stp/ocaml
 
 VINE_LIBS := fuzzball/stp/ocaml/stpvc.cmxa fuzzball/ocaml/vine.cmxa \
-             fuzzball/trace/trace.cmxa fuzzball/execution/execution.cmxa
+             fuzzball/trace/trace.cmxa \
+             fuzzball/structs/structs.cmxa \
+             fuzzball/logging/logging.cmxa \
+             fuzzball/execution/execution.cmxa
 
 VINE_LIBS_DBG := fuzzball/stp/ocaml/stpvc.cma fuzzball/ocaml/vine.cma \
-                 fuzzball/trace/trace.cma fuzzball/execution/execution.cma
+                 fuzzball/trace/trace.cma \
+                 fuzzball/structs/structs.cma \
+                 fuzzball/logging/logging.cma \
+                 fuzzball/execution/execution.cma
 
-VINE_PKGS := -package str,extlib,unix
+VINE_PKGS := -package str,extlib,unix,yojson,tyxml
 
 %.cmi: %.mli
 	ocamlopt $(OCAMLINCLUDES) -o $@ -c $+
@@ -121,6 +127,8 @@ VINE_PKGS := -package str,extlib,unix
 
 %.cmx: %.ml
 	ocamlopt $(OCAMLINCLUDES) -o $@ -c $*.ml
+
+cfgs.cmx: cfgs.cmi
 
 cfgs_test.cmx: cfgs.cmi
 cfgs_test.cmo: cfgs.cmi
@@ -134,7 +142,7 @@ cfg_fuzzball.cmx: cfgs.cmi
 cfg_fuzzball.cmo: cfgs.cmi
 
 cfg_fuzzball: $(VINE_LIBS) \
-           cfg_fuzzball.cmx cfgs.cmx \
+           cfgs.cmx cfg_fuzzball.cmx \
            cfgs_stubs.o cfgs_for_ocaml.o PinDisasm.o \
            cfg.o func.o callgraph.o instr.o serialize.o InterProcCFG.o \
 		   Utilities.o
