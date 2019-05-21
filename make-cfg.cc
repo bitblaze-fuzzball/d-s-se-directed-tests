@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <map>
+#include <sstream>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -26,6 +27,7 @@ extern "C" {
 #include "callgraph.h"
 #include "cfg.h"
 #include "serialize.h"
+#include "json_spirit_writer_template.h"
 
 int disassemble(addr_t addr, byte_t *code, addr_t &next1, addr_t &next2, 
 		xed_category_enum_t &category, char *buf = NULL, 
@@ -39,6 +41,7 @@ FILE *DEBUG_FILE = stderr;
 // Cmd line args
 static const char *dot = NULL;
 static const char *vcg = NULL;
+static const char *json = NULL;
 
 Prog the_prog;
 const char *prog_name;
@@ -185,6 +188,12 @@ int main(int argc, char **argv) {
 	dot = NULL;
     }
 
+    if((tmpstr = argv_getString(argc, argv, "--json=", NULL)) != NULL ) {
+	json = tmpstr;
+    } else {
+	json = NULL;
+    }
+
     if((tmpstr = argv_getString(argc, argv, "--vcg=", NULL)) != NULL ) {
 	vcg = tmpstr;
     } else {
@@ -303,35 +312,55 @@ int main(int argc, char **argv) {
 	cfg->sanityCheck();
     }
 
-    if (dot || vcg) {
+    if (dot || vcg || json) {
 	FILE *f;
 	char tmp[PATH_MAX];
 	CallGraph *callgraph = the_prog.getCallGraph();
 
-	for (functions_map_t::iterator it = functions.begin(); 
-	     it != functions.end(); it++) {
+	// we want one big file for json, little files for others
+	if (json) {
+	  json_spirit::Array json_fullcfg;
+	  json_spirit::Object json_func, json_cfg;
+
+	  for (functions_map_t::iterator it = functions.begin();
+	       it != functions.end(); it++) {
+	    Function *func = it->second;
+	    json_cfg = func->getCfg()->json();
+	    json_fullcfg.push_back(json_cfg);
+	  }
+	  snprintf(tmp, sizeof(tmp) - 1, "%s/cfg.json",json);
+	  tmp[sizeof(tmp) - 1] = '\0';
+	  f = fopen(tmp, "w");
+	  assert(f);
+	  fprintf(f, "%s", 
+		  json_spirit::write_string(json_spirit::Value(json_fullcfg), 
+					    json_spirit::pretty_print).c_str());
+	  fclose(f);
+	} else {
+	  for (functions_map_t::iterator it = functions.begin(); 
+	       it != functions.end(); it++) {
 	    Function *func = it->second;
 	    if (dot) {
-		snprintf(tmp, sizeof(tmp) - 1, "%s/%.8x.dot", dot, 
-			 func->getAddress());
-		tmp[sizeof(tmp) - 1] = '\0';
-		f = fopen(tmp, "w");
-		assert(f);
-		fprintf(f, "%s", func->getCfg()->dot().c_str());
-		fclose(f);
+	      snprintf(tmp, sizeof(tmp) - 1, "%s/%.8x.dot", dot, 
+		       func->getAddress());
+	      tmp[sizeof(tmp) - 1] = '\0';
+	      f = fopen(tmp, "w");
+	      assert(f);
+	      fprintf(f, "%s", func->getCfg()->dot().c_str());
+	      fclose(f);
 	    }
 	    if (vcg) {
-		snprintf(tmp, sizeof(tmp) - 1, "%s/%.8x.vcg", vcg, 
-			 func->getAddress());
-		tmp[sizeof(tmp) - 1] = '\0';
-		f = fopen(tmp, "w");
-		if (!f) {
-		    fprintf(stderr, "Failed to open %s for writing: %s\n",
-			    tmp, strerror(errno));
-		    assert(f);
-		}
-		fprintf(f, "%s", func->getCfg()->vcg().c_str());
-		fclose(f);
+	      snprintf(tmp, sizeof(tmp) - 1, "%s/%.8x.vcg", vcg, 
+		       func->getAddress());
+	      tmp[sizeof(tmp) - 1] = '\0';
+	      f = fopen(tmp, "w");
+	      if (!f) {
+		fprintf(stderr, "Failed to open %s for writing: %s\n",
+			tmp, strerror(errno));
+		assert(f);
+	      }
+	      fprintf(f, "%s", func->getCfg()->vcg().c_str());
+	      fclose(f);
 	    }
 
 	    // Test decoding
@@ -343,6 +372,7 @@ int main(int argc, char **argv) {
 	    //      bbit != func->getCfg()->bb_end(); bbit++) {
 	    //	debug2("BBIT: %.8x\n", (*bbit)->getAddress());
 	    // }
+	  }
 	}
 
 	if (dot) {

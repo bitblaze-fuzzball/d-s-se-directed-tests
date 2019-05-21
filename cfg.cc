@@ -2,6 +2,9 @@
 #include "instr.h"
 #include "PinDisasm.h"
 #include "prog.h"
+//#include "json_spirit_reader_template.h"
+#include "debug.h"
+#include <cassert>
 
 extern "C" {
 #include "xed-interface.h"
@@ -389,6 +392,111 @@ void Cfg::decode() {
 	}
     }
     decoded = true;
+}
+
+json_spirit::Object Cfg::json() {
+    std::set<Function *> functions;
+    char tmp[1024];
+    int j = 0;
+
+    if (getNumVertex() > 0) {
+	computeWeakTopologicalOrdering();
+	debug2("Weak topological ordering: %s\n", wto2string().c_str());
+    }
+
+    json_spirit::Object cfgobj;
+
+    json_spirit::Array blocksarr;
+    for (Cfg::const_bb_iterator bbit = bb_begin(); 
+	 bbit != bb_end(); bbit++) {
+	BasicBlock *bb = *bbit;
+	json_spirit::Object blockobj;
+	stringstream addrstr;
+	addrstr << "0x" << std::hex << bb->getAddress();
+	blockobj.push_back(json_spirit::Pair("blockaddress", addrstr.str()));
+	blockobj.push_back(json_spirit::Pair("blocksize", (int)(bb->getSize() - 1)));
+	blockobj.push_back(json_spirit::Pair("functionblocknumberid", j));
+	//blockobj.push_back(Pair("executed", bb->isExecuted()));
+	json_spirit::Array instrarray;
+	for (instructions_t::iterator it = bb->instructions.begin(); 
+	     it != bb->instructions.end(); it++) {
+	    json_spirit::Object instructionobj;
+	    stringstream instraddr;
+	    instraddr << "0x" << std::hex << (*it)->getAddress();
+	    instructionobj.push_back(json_spirit::Pair("address", instraddr.str()));
+	    instructionobj.push_back(json_spirit::Pair("instruction", disasm((*it)->getRawBytes())));
+	    stringstream bytes;
+	    bytes << "0x" << std::hex << int((*it)->getRawBytes()[0]);
+	    for (unsigned int i=1;i<(*it)->getSize();i++) {
+		bytes << " 0x" << std::hex << int((*it)->getRawBytes()[i]);
+	    }
+	    instructionobj.push_back(json_spirit::Pair("bytes", bytes.str()));
+	    
+	    instrarray.push_back(instructionobj);
+	}
+	blockobj.push_back(json_spirit::Pair("instructions", json_spirit::Value(instrarray)));
+	
+	blocksarr.push_back(blockobj);
+	//	r += "   " + std::string(tmp);
+	j++;
+    }
+
+     for (std::map<addr_t, functions_t>::iterator it = calls.begin(); 
+ 	 it != calls.end(); it++) {
+ 	functions.insert(it->second.begin(), it->second.end());
+     }
+
+    json_spirit::Array edgesarr;
+
+    // inter-function edges
+    for (std::map<addr_t, functions_t>::iterator it1 = calls.begin();
+	 it1 != calls.end(); it1++) {
+	
+	for (functions_t::iterator it2 = it1->second.begin(); 
+	     it2 != it1->second.end(); it2++) {
+	    json_spirit::Object edgeobj;
+	    stringstream sourceaddr, targetaddr;
+	    sourceaddr << "0x" << std::hex << addr2bb[it1->first]->getAddress();
+	    targetaddr << "0x" << std::hex << (*it2)->getAddress();
+
+	    edgeobj.push_back(json_spirit::Pair("source", sourceaddr.str()));
+	    edgeobj.push_back(json_spirit::Pair("target", targetaddr.str()));
+
+	    edgesarr.push_back(edgeobj);
+	}
+    }
+
+    // intra-function edges
+    for (Cfg::const_edge_iterator eit = edge_begin();
+ 	 eit != edge_end(); eit++) {
+	BasicBlockEdge *e = *eit;
+	BasicBlock *source = e->getSource(), *target = e->getTarget();
+
+	json_spirit::Object edgeobj;
+	stringstream sourceaddr, targetaddr;
+	sourceaddr << "0x" << std::hex << source->getAddress();
+	targetaddr << "0x" << std::hex << target->getAddress();
+
+	edgeobj.push_back(json_spirit::Pair("source", sourceaddr.str()));
+	edgeobj.push_back(json_spirit::Pair("target", targetaddr.str()));
+	
+	edgesarr.push_back(edgeobj);
+    }
+
+    // put together the block list and edge list
+    json_spirit::Object finalcfg;
+    
+    finalcfg.push_back(json_spirit::Pair("blocks", blocksarr));
+    finalcfg.push_back(json_spirit::Pair("edges",edgesarr));
+
+    stringstream funcaddr;
+    funcaddr << "0x" << std::hex << function->getAddress();
+    cfgobj.push_back(json_spirit::Pair("function_addr", funcaddr.str()));
+    cfgobj.push_back(json_spirit::Pair("cfg", finalcfg));
+
+    //    string jsonstr = json_spirit::write_string(json_spirit::Value(finaljson), json_spirit::pretty_print);
+
+    return cfgobj;
 }
 
 std::string Cfg::dot() {

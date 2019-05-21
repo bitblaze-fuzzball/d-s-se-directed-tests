@@ -5,6 +5,7 @@
 #include "graph.h"
 #include "func.h"
 #include "instr.h"
+#include "json_spirit_writer_template.h"
 #include <map>
 
 class Function;
@@ -162,6 +163,7 @@ public:
 
     size_t getBasicBlocksNo();
 
+    json_spirit::Object json();
     std::string dot();
     std::string vcg();
     std::string wto2string();
