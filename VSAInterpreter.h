@@ -650,7 +650,8 @@ void VSAInterpreter<T>::visitMoveInstr(MoveInstr &m) {
                         temp.name == "R_IDFLAG" ||
                         temp.name == "R_ACFLAG" ||
                         temp.name == "EFLAGSREST" ||
-                        temp.name == "R_EMWARN"),
+                        temp.name == "R_EMWARN" ||
+			temp.name == "R_IP_AT_SYSCALL"),
                        "Found an undeclared temporary '%s'.", 
                        temp.name.c_str());
 
