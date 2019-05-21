@@ -212,6 +212,15 @@ BasicBlock *Cfg::splitBasicBlock(BasicBlock *oldbb, addr_t before) {
     return newbb2;
 }
 
+byte_t *addr2bytes(Cfg *cfg, addr_t addr) {
+    Prog *prog = cfg->getFunction()->getProg();
+    Section *sec = prog->getSection(addr);
+    if (sec)
+	return sec->addrToPtr(addr);
+    else
+	return (byte_t *)addr;
+}
+
 bool Cfg::addInstruction(addr_t addr, byte_t *bytes, size_t len, int pos, 
 			 addr_t prev, bool isret) {
     bool changed = false;
@@ -221,7 +230,8 @@ bool Cfg::addInstruction(addr_t addr, byte_t *bytes, size_t len, int pos,
 
     // Dirty hack to detect whether previous instruction was a rep
     isrep = len == 2 && (*bytes == 0xf3 || *bytes == 0xf2);
-    prev_isrep = prev && (*((byte_t *) prev) == 0xf3 || *((byte_t *) prev) == 0xf2);
+    byte_t prev_byte = prev ? *(addr2bytes(this, prev)) : 0;
+    prev_isrep = prev && ( prev_byte == 0xf3 || prev_byte == 0xf2);
 
     debug3("Processing instruction %.8x-%.8x %d %.8x\n", addr, addr + len - 1,
 	   pos, prev);
@@ -608,9 +618,9 @@ void Cfg::sanityCheck(bool aggressive) {
 }
 
 int
-disassemble_from(addr_t addr, byte_t *code, addr_t &next1, addr_t &next2,
-		 xed_category_enum_t &category, char *buf = NULL,
-		 size_t bufsize = 0) {
+disassemble(addr_t addr, byte_t *code, addr_t &next1, addr_t &next2,
+	    xed_category_enum_t &category, char *buf = NULL,
+	    size_t bufsize = 0) {
     xed_state_t dstate;
     xed_decoded_inst_t xedd;
     xed_error_enum_t xed_error;
@@ -676,13 +686,6 @@ disassemble_from(addr_t addr, byte_t *code, addr_t &next1, addr_t &next2,
     return len; 
 }
 
-int disassemble(addr_t addr, addr_t &next1, addr_t &next2,
-		xed_category_enum_t &category, char *buf = NULL,
-		size_t bufsize = 0) {
-    return disassemble_from(addr, (byte_t *)addr,
-			    next1, next2, category, buf, bufsize);
-}
-
 void Cfg::augmentCfg(std::list<std::pair<addr_t, addr_t> > &wlist, 
 		     std::set<addr_t> &done, 
 		     std::map<addr_t, Function *> &funcs) {
@@ -698,9 +701,11 @@ void Cfg::augmentCfg(std::list<std::pair<addr_t, addr_t> > &wlist,
     wlist.pop_front();
 
     if (prev)
-	disassemble(prev, next1, next2, prev_category);
+	disassemble(prev, addr2bytes(this, prev), next1, next2,
+		    prev_category);
 
-    len = disassemble(curr, next1, next2, category, assembly, sizeof(assembly));
+    len = disassemble(curr, addr2bytes(this, curr), next1, next2,
+		      category, assembly, sizeof(assembly));
 
     if (!prev || prev_category == XED_CATEGORY_RET 
 	|| prev_category == XED_CATEGORY_CALL 
@@ -723,7 +728,7 @@ void Cfg::augmentCfg(std::list<std::pair<addr_t, addr_t> > &wlist,
 	   curr, len, prev, pos);
 
     // Add instruction to the CFG if not in there already
-    addInstruction(curr, (byte_t *) curr, len, pos, prev, 
+    addInstruction(curr, addr2bytes(this, curr), len, pos, prev, 
 		   category == XED_CATEGORY_RET);
 
     // Add a call target if necessary
@@ -810,7 +815,8 @@ void Cfg::augmentCfg(addr_t start, std::map<addr_t, Function *> &funcs) {
 		static char buf[128];
 
 		prev = (*((*pit)->inst_end() - 1))->getAddress();
-		disassemble(prev, tmp0, tmp0, tmp1, buf, sizeof(buf));
+		disassemble(prev, addr2bytes(this, prev),
+				 tmp0, tmp0, tmp1, buf, sizeof(buf));
 		debug2("Found unprocessed basic block %.8x-%.8x "
 		       "(reached from %.8x %s)\n", 
 		       (*bbit)->getAddress(), 

@@ -6,7 +6,7 @@ CFLAGS_ASMIR = -Ifuzzball/libasmir -Ifuzzball/libasmir/src/include -IVEX/pub -Ib
 LDFLAGS_ASMIR = -Lbinutils/lib
 LIBS_ASMIR = fuzzball/libasmir/src/libasmir.a VEX/libvex.a -lopcodes -lbfd -liberty -lz
 NDEBUG:=$(shell if [ ! -z $(DISABLE_ASSERTIONS) ]; then echo "-DNDEBUG"; fi)
-CFLAGS = -Wall -Wno-deprecated -Wextra -pipe -ffloat-store -Wno-unused $(NDEBUG) -Iboost/include
+CFLAGS = -Wall -Wno-deprecated -Wextra -pipe -ffloat-store -Wno-unused -Wno-unused-parameter $(NDEBUG) -Iboost/include
 LDFLAGS = -Lboost/lib # -Wl,-rpath `pwd`/boost/lib
 LIBS = -lboost_serialization -lboost_iostreams -lbz2
 
@@ -41,17 +41,21 @@ include $(CONFIG_ROOT)/makefile.config
 # We want to control our own compiler warnings, thank you very much.
 TOOL_CXXFLAGS := $(filter-out -Wall -Werror,$(TOOL_CXXFLAGS))
 
-CXXFLAGS = -I$(INCL) $(DBG) $(OPT) -MMD
+#CXXFLAGS = -I$(INCL) $(DBG) $(OPT) -MMD
 OPTFLAGS := -O3 -s
 DBGFLAGS := -O0 -g3 -gdwarf-2
-CXXFLAGS = $(CFLAGS)
-override CXXFLAGS+=$(shell if [ -z $(ENABLE_OPTIMIZED) ]; then echo $(DBGFLAGS); else echo $(OPTFLAGS); fi)
 override CFLAGS+=$(shell if [ -z $(ENABLE_OPTIMIZED) ]; then echo $(DBGFLAGS); else echo $(OPTFLAGS); fi)
+CXXFLAGS := $(CFLAGS)
+#override CXXFLAGS+=$(shell if [ -z $(ENABLE_OPTIMIZED) ]; then echo $(DBGFLAGS); else echo $(OPTFLAGS); fi)
 ###
 
-CXXFLAGS += -I$(PIN_KIT)/extras/xed-ia32/include
-LDFLAGS += -L$(PIN_KIT)/extras/xed2-ia32/lib/
+# This -I is duplicated in Pin's $(TOOL_CXXFLAGS)
+#CXXFLAGS += -I$(PIN_KIT)/extras/xed-ia32/include
+LDFLAGS += -L$(PIN_KIT)/extras/xed2-ia32/lib
 LIBS += -lxed
+
+# Because it took 28 years to standardize hash tables...
+CXXFLAGS += -std=c++11
 
 OBJs = cfg.o func.o callgraph.o instr.o 
 OBJs += trace.o argv_readparam.o pintracer.o vineir.o static.o serialize.o

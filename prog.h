@@ -25,6 +25,7 @@ typedef std::vector<byte_t> bytes_t;
 class Section {
 private:
     bytes_t bytes;
+    byte_t *bytes_raw;
     addr_t address;
     size_t size;
     unsigned int flags;
@@ -40,6 +41,7 @@ private:
 	ar & bytes;
 	ar & name;
 	ar & allocated;
+	/* Can we reconstruct bytes_raw from bytes? */
 	(void)version;
     }
 
@@ -51,6 +53,7 @@ public:
     Section(addr_t a, byte_t * b, size_t s, unsigned int f, const char *n) {
 	address = a;
 	size = s;
+	bytes_raw = b;
 	allocated = b != NULL;
 	if (b) {
 	    for (size_t i = 0; i < s; i++) {
@@ -78,6 +81,14 @@ public:
     byte_t getByte(addr_t a) const {
 	assert(a >= address && a < address + size);
 	return bytes[a - address];
+    }
+
+    byte_t *addrToPtr(addr_t a) const {
+	assert(a >= address && a < address + size);
+	if (bytes_raw)
+	    return &bytes_raw[a - address];
+	else
+	    return (byte_t *)a;
     }
 
     bytes_t::const_iterator bytes_begin() {
@@ -208,6 +219,16 @@ public:
 	    }
 	}
 	assert(0);
+    }
+
+    Section *getSection(addr_t a) {
+	for (sections_t::iterator sit = sections.begin();
+	     sit != sections.end(); sit++) {
+	    if (a >= (*sit)->address && a < (*sit)->address + (*sit)->size) {
+		return *sit;
+	    }
+	}
+	return 0;
     }
 
     bool isPlt(addr_t a) {
