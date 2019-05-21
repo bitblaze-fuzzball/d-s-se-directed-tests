@@ -1018,10 +1018,6 @@ VSAInterpreter<T>::visitCastExpr(CastExpr& E, VSetPtr v) {
             break;
         case vine::CAST_UNSIGNED:
         case vine::CAST_SIGNED: 
-        case vine::CAST_FLOAT:
-        case vine::CAST_INTEGER:
-        case vine::CAST_RFLOAT:
-        case vine::CAST_RINTEGER:
             assert(newSize < oldSize && "Downcast expected.");
             res = *v & *ValSetTy::get(mask, expectedStride);
             break;
