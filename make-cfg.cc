@@ -208,6 +208,16 @@ void load_addresses(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs, 
   }
 }
 
+void print_usage(){
+  std::cerr
+    << "Usage: make-cfg [options] program" << std::endl
+    << "--dot=<target-output> save a dotgrapher version of the cfg at the target output location." << std::endl
+    << "--json=<target-output> where to output json representation of cfg" << std::endl
+    << "--vcg=<target-output> where to output vcg representation of the cfg" << std::endl
+    << "--cfg-out=<target-output> Where to store the control flow graph output." << std::endl
+    << "--addresses-file=<target-input> Set of points to start CFG generation from" << std::endl;
+}
+
 int main(int argc, char **argv) {
     char *tmpstr;
     const char *cfg_out;
@@ -260,8 +270,8 @@ int main(int argc, char **argv) {
     }
 
     if (argc < 2 || argv[argc - 1][0] == '-') {
-        fprintf(stderr, "Usage: make-cfg [options] program\n");
-        exit(1);
+      print_usage();
+      exit(1);
     }
 
     prog_name = argv[argc - 1];
