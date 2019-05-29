@@ -1,6 +1,8 @@
 // TODOs:
 // 1) Check whether /tmp/yyy directory exists, issue an error if it
 // doesn't. Even better, make the path/file a cmnd line option.
+// - no, putting anything into a common path is stupid, this is supposed to be
+// a shared program, so of course you will get perms/file conflicts if you do this...
 
 #include "cfg.h"
 #include "callgraph.h"
@@ -241,7 +243,7 @@ int main(int argc, char **argv) {
     mmap->check();
     Region::setMemMap(mmap);
 
-    f = fopen("/tmp/yyy/callgraph.dot", "w");
+    f = fopen("./callgraph.dot", "w");
     assert(f);
     fprintf(f, "%s", callgraph->dot().c_str());
     fclose(f);
@@ -356,7 +358,7 @@ int main(int argc, char **argv) {
 	// Remove self loops 
 	func->getCfg()->removeSelfLoops();
 
-	snprintf(tmp, sizeof(tmp) - 1, "%s/%.8x.dot", "/tmp/yyy", 
+	snprintf(tmp, sizeof(tmp) - 1, "%s/%.8x.dot", "./", 
 		 func->getAddress());
 	tmp[sizeof(tmp) - 1] = '\0';
 	f = fopen(tmp, "w");
