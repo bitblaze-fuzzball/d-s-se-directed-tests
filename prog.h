@@ -250,7 +250,7 @@ public:
 		assert(0);
 	    }
 	}
-	assert(0);
+	// assert(0); // I think this assert only makes sense if you believe the code to be well-formed
     return false;
     }
 
