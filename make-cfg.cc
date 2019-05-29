@@ -432,7 +432,7 @@ int main(int argc, char **argv) {
             json_cfg = func->getCfg()->json();
             json_fullcfg.push_back(json_cfg);
           }
-          snprintf(tmp, sizeof(tmp) - 1, "%s/cfg.json", json);
+          snprintf(tmp, sizeof(tmp) - 1, "%s", json);
           tmp[sizeof(tmp) - 1] = '\0';
           f = fopen(tmp, "w");
           assert(f);
