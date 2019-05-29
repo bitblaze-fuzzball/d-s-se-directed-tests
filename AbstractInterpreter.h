@@ -249,6 +249,7 @@ AbstractInterpreter<SubClass, ValSetTy, StateTy>::visit(Expression& E) {
             CastExpr& ce = static_cast<CastExpr&>(E);
             DELEGATE(CastExpr, visit(ce.exp))
         } break;
+        case vine::ITE: // XXX should have a proper delegation
         case vine::UNKNOWN:
             return ValSetTy::getTop();
             break;
