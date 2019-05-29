@@ -2,6 +2,7 @@
 # DISABLE_ASSERTIONS=1 make --- disables assertions
 # ENABLE_OPTIMIZED=1 make   --- builds an optimized build
 
+ENABLE_OPTIMIZED=1	# optimize and turn off tons of debug output to stdout that breaks lisp
 CFLAGS_ASMIR = -Ifuzzball/libasmir -Ifuzzball/libasmir/src/include -IVEX/pub -Ibinutils/include
 LDFLAGS_ASMIR = -Lbinutils/lib
 LIBS_ASMIR = fuzzball/libasmir/src/libasmir.a VEX/libvex.a -lopcodes -lbfd -liberty -lz
