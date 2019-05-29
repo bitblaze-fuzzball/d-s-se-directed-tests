@@ -177,6 +177,7 @@ void load_addresses(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs) 
   int i;
   bool bad;
   if (file != NULL) {
+    printf("Loaded addresses from addresses.txt\n");
     while (fgets(line, sizeof line, file) != NULL) {
       Elf32_Addr addr_n;
       addr_n = atoi(line);
@@ -203,6 +204,7 @@ void load_addresses(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs) 
     fclose(file);
   } else {
     // ignore error opening. will just be regular input
+    printf("Did not load supplementary addresses from file.\n");
   }
 }
 
