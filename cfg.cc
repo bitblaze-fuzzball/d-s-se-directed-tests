@@ -749,7 +749,12 @@ disassemble(addr_t addr, byte_t *code, addr_t &next1, addr_t &next2,
 	snprintf(buf, bufsize, "(bad)");
 	return 1;
     }
-    assert(xed_error == XED_ERROR_NONE);
+    // assert(xed_error == XED_ERROR_NONE);
+    if (xed_error != XED_ERROR_NONE) {
+	fprintf(stdout, "Warning! Error code from XED at %.8x: %d. Inserting (bad) in buffer.\n", addr, xed_error);
+	snprintf(buf, bufsize, "(bad)");
+	return 1;
+    }
 
     const xed_inst_t *inst= xed_decoded_inst_inst(&xedd);
     category = xed_decoded_inst_get_category(&xedd);
