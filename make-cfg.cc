@@ -170,14 +170,14 @@ void build_cfg() {
     }
 }
 
-void load_addresses(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs) {
-  static const char filename[] = "addresses.txt";
+void load_addresses(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs, const char* filename) {
+  //  static const char filename[] = "addresses.txt";
   FILE *file = fopen (filename, "r");
   char line[40];
   int i;
   bool bad;
   if (file != NULL) {
-    printf("Loaded addresses from addresses.txt\n");
+    printf("Loaded addresses from %s\n", filename);
     while (fgets(line, sizeof line, file) != NULL) {
       Elf32_Addr addr_n;
       addr_n = atoi(line);
@@ -211,6 +211,7 @@ void load_addresses(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs) 
 int main(int argc, char **argv) {
     char *tmpstr;
     const char *cfg_out;
+    const char *addresses_filename;
 
     Elf32_Phdr *phdr;
     Elf32_Phdr gphdr;
@@ -250,6 +251,12 @@ int main(int argc, char **argv) {
         cfg_out = tmpstr;
     } else {
         cfg_out = NULL;
+    }
+
+    if((tmpstr = argv_getString(argc, argv, "--addresses-file=", NULL)) != NULL ) {
+      addresses_filename = tmpstr;
+    } else {
+      addresses_filename = "addresses.txt";
     }
 
     if (argc < 2 || argv[argc - 1][0] == '-') {
@@ -402,7 +409,7 @@ int main(int argc, char **argv) {
     functions[start] = func;
     func->setProg(&the_prog);
 
-    load_addresses(&the_prog, lbphdr, ubphdr, match_count);
+    load_addresses(&the_prog, lbphdr, ubphdr, match_count, addresses_filename);
 
     /* sample_disass(entry_name, start); */
     build_cfg();
