@@ -541,6 +541,8 @@ let main argv =
 	@ Exec_set_options.fuzzball_cmdline_opts
 	@ Options_solver.solver_cmdline_opts
 	@ Exec_set_options.influence_cmdline_opts
+	@ Logger_config.verb_cmdline_opts
+	@ Pov_xml.pov_xml_cmdline_opts
 	@ [
 	  ("-trace-cjmp-heuristic", Arg.Set(opt_trace_cjmp_heuristic),
 	   " Trace how decisions are made at branches");

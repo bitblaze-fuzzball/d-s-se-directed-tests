@@ -107,7 +107,7 @@ cfgs.mli: cfgs.idl
 	camlidl -header $+
 
 OCAMLINCLUDES := -I fuzzball/execution -I fuzzball/ocaml -I fuzzball/trace \
-                 -I fuzzball/stp/ocaml
+                 -I fuzzball/stp/ocaml -I fuzzball/logging
 
 VINE_LIBS := fuzzball/stp/ocaml/stpvc.cmxa fuzzball/ocaml/vine.cmxa \
              fuzzball/trace/trace.cmxa \
