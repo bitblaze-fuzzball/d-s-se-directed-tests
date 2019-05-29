@@ -744,6 +744,11 @@ disassemble(addr_t addr, byte_t *code, addr_t &next1, addr_t &next2,
 
     xed_decoded_inst_zero_set_mode(&xedd, &dstate);
     xed_error = xed_decode(&xedd, code, 16);
+    if (xed_error == XED_ERROR_GENERAL_ERROR) {
+	fprintf(stdout, "Warning! Could not decode instruction at %.8x, length ignored is 1. Inserting (bad) in buffer.\n", addr, bufsize);
+	snprintf(buf, bufsize, "(bad)");
+	return 1;
+    }
     assert(xed_error == XED_ERROR_NONE);
 
     const xed_inst_t *inst= xed_decoded_inst_inst(&xedd);
@@ -857,12 +862,12 @@ void Cfg::augmentCfg(std::list<std::pair<addr_t, addr_t> > &wlist,
 	    // This should not happen, but it happens and I don't know why!
 	    debug("Invalid NULL call target\n");
 	}
-    } else if (category == XED_CATEGORY_CALL && (indirects.size() != 0)) { // i.e., indirect
-	for (functions_map_t::iterator fit = indirects.begin();
-	     fit != indirects.end(); fit++) {
-	    addCall(curr, funcs.find(fit->second->getAddress())->second);
-	}
-    }
+    } // else if (category == XED_CATEGORY_CALL && (indirects.size() != 0)) { // i.e., indirect
+    // for (functions_map_t::iterator fit = indirects.begin();
+    //fit != indirects.end(); fit++) {
+    //	    addCall(curr, funcs.find(fit->second->getAddress())->second);
+    //	}
+    //}
 
     // Update the worklist
     if (done.find(curr) == done.end()) {

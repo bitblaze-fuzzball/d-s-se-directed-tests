@@ -18,6 +18,7 @@
 
 #include <elf.h>
 #include <libelf.h>
+#include <gelf.h>
 
 extern "C" {
 #include <xed-interface.h>
@@ -169,19 +170,35 @@ void build_cfg() {
     }
 }
 
-void load_addresses(Prog *p) {
+void load_addresses(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs) {
   static const char filename[] = "addresses.txt";
   FILE *file = fopen (filename, "r");
   char line[40];
+  int i;
+  bool bad;
   if (file != NULL) {
     while (fgets(line, sizeof line, file) != NULL) {
-      unsigned int addr_n;
+      Elf32_Addr addr_n;
       addr_n = atoi(line);
-      Function *func = new Function(line, addr_n, 0, prog_name);
 
-      func->setProg(p);
-      indirects[addr_n] = func;
-      functions[addr_n] = func;
+      bad = true;
+      for (i = 0; i < numsegs; i++) {
+	//printf("%.8x between %.8x and %.8x? ", addr_n, lbphr[i], ubphr[i]);
+	if ((addr_n >= lbphr[i]) && (addr_n <= ubphr[i])) {
+	  //printf("true\n");
+	  bad = false;
+	} //else 
+	  //printf("false\n");
+      }
+
+      if (!bad) {
+	Function *func = new Function(line, addr_n, 0, prog_name);
+	func->setProg(p);
+	indirects[addr_n] = func;
+	functions[addr_n] = func;
+      } else {
+	printf("Warning: %.8x is not within any executable segment.\n", addr_n);
+      }
     }
     fclose(file);
   } else {
@@ -194,6 +211,7 @@ int main(int argc, char **argv) {
     const char *cfg_out;
 
     Elf32_Phdr *phdr;
+    Elf32_Phdr gphdr;
     Elf32_Shdr *shdr;
     Elf_Scn *scn, *code_scn;
     addr_t start;
@@ -202,8 +220,11 @@ int main(int argc, char **argv) {
     unsigned version;
 
     int fd, res;
-    int ph_count;
+    size_t ph_count, i;
     int match_count = 0;
+
+    Elf32_Addr *ubphdr;
+    Elf32_Addr *lbphdr;
 
     if((tmpstr = argv_getString(argc, argv, "--dot=", NULL)) != NULL ) {
 	dot = tmpstr;
@@ -247,34 +268,91 @@ int main(int argc, char **argv) {
     assert(version != EV_NONE);
     elf = elf_begin(fd, ELF_C_READ, 0);
     ehdr = elf32_getehdr(elf);
-    ph_count = ehdr->e_phnum;
+    //    ph_count = ehdr->e_phnum;
+    if (elf_getphdrnum(elf, &ph_count) != 0) 
+      fprintf(stderr, "elf_getphdrnum() failed : %s .", elf_errmsg(-1));
+    ubphdr = (unsigned int*)malloc(ph_count*sizeof(unsigned int));
+    lbphdr = (unsigned int*)malloc(ph_count*sizeof(unsigned int));
     start = ehdr->e_entry;
+
     phdr = elf32_getphdr(elf);
 
     /* It might be safer to iterate over segments (the program header)
        instead of sections, but it doesn't look like libelf would provide
        much help with that. */
     scn = 0;
-    while ((scn = elf_nextscn(elf, scn)) != 0) {
-        char *name;
-        shdr = elf32_getshdr(scn);
-        name = elf_strptr(elf, ehdr->e_shstrndx, shdr->sh_name);
-	if (shdr->sh_type == SHT_PROGBITS && start >= shdr->sh_addr
-	    && start < shdr->sh_addr + shdr->sh_size) {
-	    match_count++;
-	    printf("Found candidate section at 0x%08x (%s)\n", shdr->sh_addr,
-		   name);
-	    code_scn = scn;
-	}
-	min_addr = std::min(min_addr, shdr->sh_addr);
-	max_addr = std::max(max_addr, shdr->sh_addr + shdr->sh_size);
+
+
+    for (i = 0; i < ph_count; i++) {
+      if (phdr[i].p_flags & PF_X) {
+	lbphdr[match_count] = phdr[i].p_vaddr;
+	ubphdr[match_count] = phdr[i].p_vaddr + phdr[i].p_filesz;
+	match_count++;
+	printf("Found candidate segment at 0x%08x\n", phdr[i].p_vaddr);
+      }
+
+      min_addr = std::min(min_addr, phdr[i].p_vaddr);
+      max_addr = std::max(max_addr, phdr[i].p_vaddr + phdr[i].p_filesz);
     }
-    assert(match_count == 1);
+
+    //    while ((scn = elf_nextscn(elf, scn)) != 0) {
+    //      char *name;
+    //      shdr = elf32_getshdr(scn);
+    //      name = elf_strptr(elf, ehdr->e_shstrndx, shdr->sh_name);
+    //      if (shdr->sh_type == SHT_PROGBITS && start >= shdr->sh_addr
+    //	  && start < shdr->sh_addr + shdr->sh_size) {
+	//	match_count++;
+    //	printf("Found candidate section at 0x%08x (%s)\n", shdr->sh_addr,
+    //	       name);
+//	code_scn = scn;
+//      }
+      //min_addr = std::min(min_addr, shdr->sh_addr);
+      //max_addr = std::max(max_addr, shdr->sh_addr + shdr->sh_size);
+//    } 
+    
+    assert(match_count >= 1); // at least one executable segment
 
     the_prog.addModule(min_addr, max_addr - min_addr, prog_name, true);
 
     scn = 0;
-    while ((scn = elf_nextscn(elf, scn)) != 0) {
+//    while ((scn = elf_nextscn(elf, scn)) != 0) {
+    for (i = 0; i < ph_count; i++) {
+      char* name = (char*)malloc(10);
+      byte_t *data = 0;
+	//	if (shdr->sh_flags & SHF_ALLOC || shdr->sh_type == SHT_SYMTAB) {
+	if (phdr[i].p_flags & PF_X) {
+	  // JDB: phdr[i].p_memsz seems incorrect in this context, so using p_filesz
+	  data = (byte_t *)calloc(1, phdr[i].p_filesz); 
+	    if (!data) {
+		fprintf(stderr, "Failed to allocate %lu bytes "
+			"for segment starting at 0x%08x, aborting\n",
+			(unsigned long)phdr[i].p_filesz, phdr[i].p_vaddr);
+		exit(1);
+	    }
+	    lseek(fd, phdr[i].p_offset, SEEK_SET);
+	    res = read(fd, data, phdr[i].p_filesz);
+	    assert(res == (int)phdr[i].p_filesz);
+	    // mostly for debugging, 
+	    // but also ensures we found *some* executable code
+	    code = data;
+	    code_size = phdr[i].p_filesz;
+	    code_base = phdr[i].p_vaddr;
+	}
+
+	unsigned int flags = 0;
+	flags |= 1; /* ELF segments are always readable */
+	if (phdr[i].p_flags & PF_W)
+	    flags |= (1 << 1);
+	if (phdr[i].p_flags & PF_X)
+	    flags |= (1 << 2);
+	snprintf(name,10,".%d",i);
+	the_prog.addSection(phdr[i].p_vaddr, data, phdr[i].p_filesz, flags, name);
+	// we want scan to be section-less, so we can't really always expect a static symbol table
+	//	if (shdr->sh_type == SHT_SYMTAB) {
+	//	    read_symtab(shdr, data);
+	//	}
+    }
+/*    while ((scn = elf_nextscn(elf, scn)) != 0) {
         char *name;
 	byte_t *data = 0;
         shdr = elf32_getshdr(scn);
@@ -300,7 +378,7 @@ int main(int argc, char **argv) {
 	}
 
 	unsigned int flags = 0;
-	flags |= 1; /* ELF sections are always readable */
+	flags |= 1; // ELF sections are always readable
 	if (shdr->sh_flags & SHF_WRITE)
 	    flags |= (1 << 1);
 	if (shdr->sh_flags & SHF_EXECINSTR)
@@ -309,7 +387,7 @@ int main(int argc, char **argv) {
 	if (shdr->sh_type == SHT_SYMTAB) {
 	    read_symtab(shdr, data);
 	}
-    }
+    } */
 
     assert(code);
     const char *entry_name;
@@ -322,7 +400,7 @@ int main(int argc, char **argv) {
     functions[start] = func;
     func->setProg(&the_prog);
 
-    load_addresses(&the_prog);
+    load_addresses(&the_prog, lbphdr, ubphdr, match_count);
 
     /* sample_disass(entry_name, start); */
     build_cfg();
