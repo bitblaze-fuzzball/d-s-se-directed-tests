@@ -24,23 +24,27 @@ let fm_or = ref None
 let dt_or = ref None
 
 let load_cfg fname dst_addr =
-  let prog_info = Cfgs.program_info_from_file fname in
-  let ipcfg = Cfgs.construct_interproc_cfg prog_info in
+  if (Sys.file_exists fname) then
+    let prog_info = Cfgs.program_info_from_file fname in
+    let ipcfg = Cfgs.construct_interproc_cfg prog_info in
     Cfgs.interproc_cfg_set_target_addr ipcfg dst_addr prog_info;
     Cfgs.interproc_cfg_compute_shortest_paths ipcfg;
     prog_info_or := Some prog_info;
     ipcfg_or := Some ipcfg
+  else Printf.printf "Warning: CFG file does not exist.\n"
 
 let load_cfg_multi_targets fname targets =
-  let prog_info = Cfgs.program_info_from_file fname in
-  let ipcfg = Cfgs.construct_interproc_cfg prog_info in
+  if (Sys.file_exists fname) then
+    let prog_info = Cfgs.program_info_from_file fname in
+    let ipcfg = Cfgs.construct_interproc_cfg prog_info in
     List.iter
       (fun target ->
-	 Cfgs.interproc_cfg_add_target_addr ipcfg target prog_info)
+       Cfgs.interproc_cfg_add_target_addr ipcfg target prog_info)
       targets;
     prog_info_or := Some prog_info;
     ipcfg_or := Some ipcfg
-
+  else Printf.printf "Warning: CFG file does not exist.\n"
+         
 let opt_trace_cjmp_heuristic = ref false
 
 let opt_which_branch_heur = ref 0
@@ -233,8 +237,9 @@ let opt_trace_pattern = ref false
 let opt_trace_pattern_detailed = ref false
 
 let load_cfg_warn cfg_fname warn_fname warn_addr targ_addr =
-  let prog_info = Cfgs.program_info_from_file cfg_fname in
-  let ipcfg = Cfgs.construct_interproc_cfg prog_info in
+  if ((Sys.file_exists cfg_fname) && (Sys.file_exists warn_fname)) then
+    let prog_info = Cfgs.program_info_from_file cfg_fname in
+    let ipcfg = Cfgs.construct_interproc_cfg prog_info in
     Cfgs.interproc_cfg_load_warnings ipcfg prog_info warn_fname;
     Cfgs.interproc_cfg_set_target_warning ipcfg targ_addr prog_info;
     Cfgs.compute_influence_for_warning prog_info targ_addr;
@@ -242,8 +247,9 @@ let load_cfg_warn cfg_fname warn_fname warn_addr targ_addr =
     prog_info_or := Some prog_info;
     ipcfg_or := Some ipcfg;
     let header = Cfgs.interproc_cfg_get_component ipcfg warn_addr prog_info in
-      Hashtbl.replace opt_loop_pattern header (new_loop_pattern_info header)
-
+    Hashtbl.replace opt_loop_pattern header (new_loop_pattern_info header)
+  else Printf.printf "Warning: CFG or warning file does not exist.\n"
+        
 let load_cfg_all_targets cfg_fname warn_fname =
   let prog_info = Cfgs.program_info_from_file cfg_fname in
   let ipcfg = Cfgs.construct_interproc_cfg prog_info in
@@ -516,17 +522,23 @@ let opt_cfg_fname = ref None
 let opt_warn_fname = ref None
 
 let read_lines_file fname =
-  let ic = open_in fname and
-      l = ref [] in
+  if (Sys.file_exists fname) then
+    let ic = open_in fname and
+        l = ref [] in
     try
       while true do
         l := (input_line ic) :: !l
       done;
       failwith "Unreachable (infinite loop)"
     with
-      | End_of_file ->
-          List.rev !l
-
+    | End_of_file ->
+       List.rev !l
+  else
+    begin
+      Printf.printf("Warning: Target file does not exist.\n");
+      []
+    end
+    
 let main argv = 
   Arg.parse
     (Arg.align
