@@ -895,11 +895,18 @@ void Cfg::augmentCfg(addr_t start, std::map<addr_t, Function *> &funcs, std::map
 
     addr_t prev = 0;
 
+    //Prog *prog = this->getFunction()->getProg();
+    //Section *sec = prog->getSection(start);
+    //if (!sec) {
+    //    debug3("attempting to disassemble at a non-executable code segment.");
+    //    return;
+    //}
+    
     debug2("Augmenting CFG of %.8x\n", start);
 
     if (strcmp(function->getName(), "exit") == 0 || 
 	strcmp(function->getName(), "pthread_exit") == 0) {
-	debug2("Skipping exit because we do not want to know what happen "
+	debug2("Skipping exit because we do not want to know what happens "
 	       "after\n");
 	clear();
 	addInstruction(function->getAddress(), (byte_t *) "\xc3", 1, 
@@ -912,6 +919,14 @@ void Cfg::augmentCfg(addr_t start, std::map<addr_t, Function *> &funcs, std::map
     // First pass, recursive traversal disassembly
     wlist.push_back(std::pair<addr_t, addr_t>(start, prev));
     while (!wlist.empty()) {
+        Prog *prog = this->getFunction()->getProg();
+        Section *sec = prog->getSection(wlist.front().first);
+        if (!sec) {            
+            debug2("attempting to disassemble at a non-executable code segment at %.8x.\n", wlist.front().second);
+            wlist.pop_front();
+            continue;
+        }
+
 	augmentCfg(wlist, done, funcs, indirects);
     }
 
