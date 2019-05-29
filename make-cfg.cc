@@ -8,6 +8,8 @@
 #include <unordered_map>
 #include <map>
 #include <sstream>
+#include <iostream>
+#include <fstream>
 
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -45,8 +47,9 @@ static const char *json = NULL;
 
 Prog the_prog;
 const char *prog_name;
-typedef std::map<addr_t, Function *> functions_map_t;
+
 functions_map_t functions;
+functions_map_t indirects;
 
 unsigned char *code = 0;
 addr_t code_base;
@@ -127,7 +130,7 @@ void build_cfg() {
 		(*fit)->setModule(prog_name);
 		(*fit)->setProg(&the_prog);
 	    }
-	    (*fit)->getCfg()->augmentCfg((*fit)->getAddress(), functions);
+	    (*fit)->getCfg()->augmentCfg((*fit)->getAddress(), functions, indirects);
 	    if ((*fit)->isPending()) {
 		(*fit)->setPending(false);
 		functions[(*fit)->getAddress()] = *fit;
@@ -164,6 +167,26 @@ void build_cfg() {
 	    }
 	}
     }
+}
+
+void load_addresses(Prog *p) {
+  static const char filename[] = "addresses.txt";
+  FILE *file = fopen (filename, "r");
+  char line[40];
+  if (file != NULL) {
+    while (fgets(line, sizeof line, file) != NULL) {
+      unsigned int addr_n;
+      addr_n = atoi(line);
+      Function *func = new Function(line, addr_n, 0, prog_name);
+
+      func->setProg(p);
+      indirects[addr_n] = func;
+      functions[addr_n] = func;
+    }
+    fclose(file);
+  } else {
+    // ignore error opening. will just be regular input
+  }
 }
 
 int main(int argc, char **argv) {
@@ -275,6 +298,7 @@ int main(int argc, char **argv) {
 		}		    
 	    }
 	}
+
 	unsigned int flags = 0;
 	flags |= 1; /* ELF sections are always readable */
 	if (shdr->sh_flags & SHF_WRITE)
@@ -297,6 +321,8 @@ int main(int argc, char **argv) {
     Function *func = new Function(entry_name, start, 0, prog_name);   
     functions[start] = func;
     func->setProg(&the_prog);
+
+    load_addresses(&the_prog);
 
     /* sample_disass(entry_name, start); */
     build_cfg();

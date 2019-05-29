@@ -3,6 +3,7 @@
 
 #include <set>
 #include <vector>
+#include <map>
 
 class BasicBlock;
 class Function;
@@ -12,6 +13,7 @@ class CallGraph;
 
 typedef unsigned int addr_t;
 typedef unsigned char byte_t;
+typedef std::map<addr_t, Function *> functions_map_t;
 
 #if 0
 #warning "Extreme DANGER! These associative containers are sorted " \

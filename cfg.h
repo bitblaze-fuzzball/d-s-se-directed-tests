@@ -142,7 +142,7 @@ public: // For testing
     }
 
     void augmentCfg(std::list<std::pair<addr_t, addr_t> > &, 
-		    std::set<addr_t> &, std::map<addr_t, Function *> &);
+		    std::set<addr_t> &, std::map<addr_t, Function *> &, std::map<addr_t, Function *> &);
 
 public:
     Cfg(Function *f = NULL) : entry(NULL), function(f), decoded(false),
@@ -155,7 +155,7 @@ public:
 
     void addCall(addr_t caller, Function *callee);
 
-    void augmentCfg(addr_t, std::map<addr_t, Function *> &funcs);
+    void augmentCfg(addr_t, std::map<addr_t, Function *> &funcs, std::map<addr_t, Function *> &indirect);
     
     BasicBlock *getEntry() const {
 	return entry;

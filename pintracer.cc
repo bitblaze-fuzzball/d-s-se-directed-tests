@@ -51,6 +51,7 @@ static ADDRINT last_instruction = 0;
 static ADDRINT current_function = 0;
 // Map addresses to functions
 static map <ADDRINT, Function *> functions;
+static map <ADDRINT, Function *> indirects;
 // Stack pointer at the time main is entered
 static ADDRINT main_stackptr = 0;
 static CallGraph *callgraph = NULL;
@@ -144,7 +145,7 @@ static void augment_cfg() {
 		    (*fit)->setModule(modulename((*fit)->getAddress()).c_str());
 		    (*fit)->setProg(&prog);
 		}
-		(*fit)->getCfg()->augmentCfg((*fit)->getAddress(), functions);
+		(*fit)->getCfg()->augmentCfg((*fit)->getAddress(), functions, indirects);
 		if ((*fit)->isPending()) {
 		    (*fit)->setPending(false);
 		    functions[(*fit)->getAddress()] = *fit;
