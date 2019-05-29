@@ -414,7 +414,7 @@ json_spirit::Object Cfg::json() {
 	stringstream addrstr;
 	addrstr << "0x" << std::hex << bb->getAddress();
 	blockobj.push_back(json_spirit::Pair("blockaddress", addrstr.str()));
-	blockobj.push_back(json_spirit::Pair("blocksize", (int)(bb->getSize() - 1)));
+	blockobj.push_back(json_spirit::Pair("blocksize", (int)(bb->getSize())));
 	blockobj.push_back(json_spirit::Pair("functionblocknumberid", j));
 	//blockobj.push_back(Pair("executed", bb->isExecuted()));
 	json_spirit::Array instrarray;
@@ -519,17 +519,17 @@ std::string Cfg::dot() {
 	    sprintf(tmp, "bb_%.8x [label=\"%.8x-%.8x (%d)\", "
 		    "color=\"green\" %s];\n", 
 		    bb->getAddress(), bb->getAddress(), 
-		    bb->getAddress() + bb->getSize() - 1, j,
+		    bb->getAddress() + bb->getSize(), j,
 		    bb->isExecuted() ? "style=filled" : "");
 	} else if (exits.find(bb) != exits.end()) {
 	    sprintf(tmp, "bb_%.8x [label=\"%.8x-%.8x (%d)\", color=\"red\" %s];"
 		    "\n", bb->getAddress(), bb->getAddress(), 
-		    bb->getAddress() + bb->getSize() - 1, j,
+		    bb->getAddress() + bb->getSize(), j,
 		    bb->isExecuted() ? "style=filled" : "");
 	} else {
 	    sprintf(tmp, "bb_%.8x [label=\"%.8x-%.8x (%d)\" %s];\n", 
 		    bb->getAddress(), bb->getAddress(), 
-		    bb->getAddress() + bb->getSize() - 1, j,
+		    bb->getAddress() + bb->getSize(), j,
 		    bb->isExecuted() ? "style=filled" : "");
 	}
 	r += "   " + std::string(tmp);
@@ -620,17 +620,17 @@ std::string Cfg::vcg() {
 	    sprintf(tmp, "node: { title: \"bb_%.8x\" "
 		    "label: \"%.8x-%.8x (%d)\" color: green}\n", 
 		    bb->getAddress(), bb->getAddress(), 
-		    bb->getAddress() + bb->getSize() - 1, j);
+		    bb->getAddress() + bb->getSize(), j);
 	} else if (exits.find(bb) != exits.end()) {
 	    sprintf(tmp, "node: { title: \"bb_%.8x\" "
 		    "label: \"%.8x-%.8x (%d)\" color: red}\n", 
 		    bb->getAddress(), bb->getAddress(), 
-		    bb->getAddress() + bb->getSize() - 1, j);
+		    bb->getAddress() + bb->getSize(), j);
 	} else {
 	    sprintf(tmp, "node: { title: \"bb_%.8x\" "
 		    "label: \"%.8x-%.8x (%d)\"}\n", 
 		    bb->getAddress(), bb->getAddress(), 
-		    bb->getAddress() + bb->getSize() - 1, j);
+		    bb->getAddress() + bb->getSize(), j);
 	}
 	r += "   " + std::string(tmp);
 	j++;
