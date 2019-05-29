@@ -659,7 +659,9 @@ let main argv =
       incr_target_addr ();
       Exec_fuzzloop.fuzz start_addr fuzz_start
 	!Exec_options.opt_fuzz_end_addrs fm asmir_gamma symbolic_init
-	reset_heuristics
+	reset_heuristics;
+      Indirect_target_logger.flush ();
+      Logger_config.close_all_channels ()
 ;;
 
 main Sys.argv;;
