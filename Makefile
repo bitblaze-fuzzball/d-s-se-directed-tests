@@ -197,3 +197,6 @@ vineir: vineir.o
 make-cfg: make-cfg.o cfg.o func.o callgraph.o instr.o serialize.o \
 	Utilities.o PinDisasm.o argv_readparam.o
 	${CXX} ${CXXFLAGS} $+ -o $@ $(LDFLAGS) $(LIBS) -lelf
+
+test_assoc: read_assoc.o
+	${CXX} -o $@ ${CXXFLAGS} $^ $(LDFLAGS) $(LIBS)
