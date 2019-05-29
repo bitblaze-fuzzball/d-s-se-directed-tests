@@ -4,6 +4,7 @@
 #include "prog.h"
 //#include "json_spirit_reader_template.h"
 #include "debug.h"
+#define NDEBUG // disable asserts
 #include <cassert>
 
 extern "C" {
@@ -19,6 +20,10 @@ BasicBlock *Cfg::addBasicBlock(addr_t addr) {
     cfg_t::addVertex(b);
     b->cfg = this;
 
+    if (!cfg_t::hasVertex(b)) {
+        fprintf(stderr, "ERROR: Incorrect vertex addition.\n");
+        return 0;
+    }
     assert(cfg_t::hasVertex(b));
 
     debug3("Created new bb %.8x %p\n", addr, b);
@@ -294,7 +299,10 @@ bool Cfg::addInstruction(addr_t addr, byte_t *bytes, size_t len, int pos,
 	debug3("Instruction seen for the first time\n");
 	// First time we see the instruction
 	assert(addr);
-	inst = new Instruction(addr, bytes, len);
+        if (addr == 0) {
+            fprintf(stderr, "ERROR: Address somehow set to 0, though we searched for it.\n");
+        }
+	inst = new Instruction(addr, bytes, len); 
 	assert(inst);
 
 	if (!prev) {
@@ -745,7 +753,7 @@ disassemble(addr_t addr, byte_t *code, addr_t &next1, addr_t &next2,
     xed_decoded_inst_zero_set_mode(&xedd, &dstate);
     xed_error = xed_decode(&xedd, code, 16);
     if (xed_error == XED_ERROR_GENERAL_ERROR) {
-	fprintf(stdout, "Warning! Could not decode instruction at %.8x, length ignored is 1. Inserting (bad) in buffer.\n", addr, bufsize);
+	fprintf(stdout, "Warning! Could not decode instruction at %.8x, length ignored is 1. Inserting (bad) in buffer.\n", addr);
 	snprintf(buf, bufsize, "(bad)");
 	return 1;
     }
@@ -1180,8 +1188,9 @@ Instruction *BasicBlock::getInstruction(addr_t i) {
 	if ((*it)->getAddress() == i)
 	    return *it;
     }
-    
+
     assert(0);
+    fprintf(stderr, "ERROR: Could not find instruction %.8x", i);
     return 0;
 }
 
