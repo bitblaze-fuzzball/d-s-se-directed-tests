@@ -447,7 +447,7 @@ int main(int argc, char **argv) {
           assert(f);
           fprintf(f, "%s",
                   json_spirit::write_string(json_spirit::Value(json_fullcfg),
-                                            json_spirit::pretty_print).c_str());
+                                            json_spirit::none).c_str());
           fclose(f);
         } else {
           for (functions_map_t::iterator it = functions.begin();
