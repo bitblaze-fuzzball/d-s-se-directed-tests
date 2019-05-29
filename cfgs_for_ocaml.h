@@ -33,8 +33,16 @@ extern "C" {
 
     void interproc_cfg_compute_shortest_paths(InterProcCFG *ipcfg);
 
+    void interproc_cfg_add_target_addr(InterProcCFG *ipcfg, addr_t addr,
+				       program_info *pi);
+
     long long interproc_cfg_lookup_distance(InterProcCFG *ipcfg, addr_t addr,
 					    program_info *pi);
+
+    long long interproc_cfg_lookup_multi_distance(InterProcCFG *ipcfg,
+						  addr_t from_addr,
+						  addr_t to_addr,
+						  program_info *pi);
 
     int interproc_cfg_lookup_influence(InterProcCFG *ipcfg, addr_t addr,
 				       program_info *pi);
@@ -51,9 +59,12 @@ extern "C" {
 				    addr_t from_addr, addr_t to_addr,
 				    program_info *pi);
 
+    void interproc_cfg_load_warnings(InterProcCFG *ipcfg, program_info *pi,
+				     const char *fname);
+
+    /* Call interproc_cfg_load_warnings first. */
     void interproc_cfg_set_target_warning(InterProcCFG *ipcfg, addr_t addr,
-					  program_info *pi,
-					  const char *fname);
+					  program_info *pi);
 
     bool_for_camlidl
     interproc_cfg_is_interesting_loop(InterProcCFG *ipcfg,

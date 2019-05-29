@@ -33,9 +33,20 @@ void interproc_cfg_compute_shortest_paths(InterProcCFG *ipcfg) {
     ipcfg->compute_shortest_paths();
 }
 
+void interproc_cfg_add_target_addr(InterProcCFG *ipcfg, addr_t addr,
+				   program_info *pi) {
+    ipcfg->add_target_addr(addr, pi->functions);
+}
+
 long long interproc_cfg_lookup_distance(InterProcCFG *ipcfg, addr_t addr,
 					program_info *pi) {
     return ipcfg->lookup_distance(addr, pi->functions);
+}
+
+long long interproc_cfg_lookup_multi_distance(InterProcCFG *ipcfg,
+					      addr_t from_addr, addr_t to_addr,
+					      program_info *pi) {
+    return ipcfg->lookup_multi_distance(from_addr, to_addr, pi->functions);
 }
 
 int interproc_cfg_lookup_influence(InterProcCFG *ipcfg, addr_t addr,
@@ -61,9 +72,8 @@ interproc_cfg_edge_is_loop_exit(InterProcCFG *ipcfg,
     return ipcfg->edge_is_loop_exit(from_addr, to_addr, pi->functions);
 }
 
-void interproc_cfg_set_target_warning(InterProcCFG *ipcfg, addr_t addr,
-				      program_info *pi,
-				      const char *fname) {
+void interproc_cfg_load_warnings(InterProcCFG *ipcfg, program_info *pi,
+				 const char *fname) {
     warnings_t ww;
     unserialize(fname, ww);
     assert(ww.size() >= 1);
@@ -71,10 +81,14 @@ void interproc_cfg_set_target_warning(InterProcCFG *ipcfg, addr_t addr,
     for (warnings_t::const_iterator it = ww.begin();
 	 it != ww.end(); ++it) {
 	pi->warnings[(*it)->getAddress()] = *it;
-	if (addr == (*it)->getAddress()) {
-	    w = *it;
-	}
     }
+    assert(w);
+    ipcfg->set_target_warning(w, pi->functions); 
+}
+
+void interproc_cfg_set_target_warning(InterProcCFG *ipcfg, addr_t addr,
+				      program_info *pi) {
+    Warning *w = pi->warnings[addr];
     assert(w);
     ipcfg->set_target_warning(w, pi->functions); 
 }

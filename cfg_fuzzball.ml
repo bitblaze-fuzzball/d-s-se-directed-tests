@@ -31,13 +31,30 @@ let load_cfg fname dst_addr =
     prog_info_or := Some prog_info;
     ipcfg_or := Some ipcfg
 
+let load_cfg_multi_targets fname targets =
+  let prog_info = Cfgs.program_info_from_file fname in
+  let ipcfg = Cfgs.construct_interproc_cfg prog_info in
+    List.iter
+      (fun target ->
+	 Cfgs.interproc_cfg_add_target_addr ipcfg target prog_info)
+      targets;
+    prog_info_or := Some prog_info;
+    ipcfg_or := Some ipcfg
+
 let opt_trace_cjmp_heuristic = ref false
 
 let opt_which_branch_heur = ref 0
 
+let which_target_addr = ref None
+
 let cjmp_heuristic_distance prog_info ipcfg eip targ1 targ2 r =
   let lookup_dist targ = 
-    Cfgs.interproc_cfg_lookup_distance ipcfg targ prog_info
+    match !which_target_addr with
+      | None ->
+	  Cfgs.interproc_cfg_lookup_distance ipcfg targ prog_info
+      | Some target_addr ->
+	  Cfgs.interproc_cfg_lookup_multi_distance
+	    ipcfg targ target_addr prog_info
   in
   let lookup_infl targ = 
     Cfgs.interproc_cfg_lookup_influence ipcfg targ prog_info
@@ -218,14 +235,22 @@ let opt_trace_pattern_detailed = ref false
 let load_cfg_warn cfg_fname warn_fname warn_addr targ_addr =
   let prog_info = Cfgs.program_info_from_file cfg_fname in
   let ipcfg = Cfgs.construct_interproc_cfg prog_info in
-    Cfgs.interproc_cfg_set_target_warning ipcfg targ_addr prog_info
-      warn_fname;
+    Cfgs.interproc_cfg_load_warnings ipcfg prog_info warn_fname;
+    Cfgs.interproc_cfg_set_target_warning ipcfg targ_addr prog_info;
     Cfgs.compute_influence_for_warning prog_info targ_addr;
     Cfgs.interproc_cfg_compute_shortest_paths ipcfg;
     prog_info_or := Some prog_info;
     ipcfg_or := Some ipcfg;
     let header = Cfgs.interproc_cfg_get_component ipcfg warn_addr prog_info in
       Hashtbl.replace opt_loop_pattern header (new_loop_pattern_info header)
+
+let load_cfg_all_targets cfg_fname warn_fname =
+  let prog_info = Cfgs.program_info_from_file cfg_fname in
+  let ipcfg = Cfgs.construct_interproc_cfg prog_info in
+    Cfgs.interproc_cfg_load_warnings ipcfg prog_info warn_fname;
+    Cfgs.interproc_cfg_compute_shortest_paths ipcfg;
+    prog_info_or := Some prog_info;
+    ipcfg_or := Some ipcfg
 
 let pattern_new_choice lpi pth0 header r =
   let counts = lpi.feasibility_counts in
@@ -417,15 +442,35 @@ let cjmp_heuristic_pattern fm dt prog_info ipcfg header eip targ1 targ2 r dir =
 	| None -> make_choice c
 	| Some b -> update_choice b c; None
 
+(* When the warning is in a library function, warn_addr is the address
+   in the library, and target_addr is the one in the main program the
+   warning is attributed to. *)
+let opt_warn_addrs = ref []
+let opt_target_addrs = ref []
+
 let opt_fixed_pattern = ref None
 
 let total_iter_count = ref 1
+
+let target_addr_rotation = ref 0
+
+let incr_target_addr () = 
+  match !opt_target_addrs with
+    | _ :: _ :: _ -> (* more than one *)
+	let addr = List.nth !opt_target_addrs !target_addr_rotation in
+	  which_target_addr := Some addr;
+	  if !Exec_options.opt_trace_iterations then
+	    Printf.printf "On this iteration, target is 0x%08Lx\n" addr;
+	  target_addr_rotation :=
+	    (!target_addr_rotation + 1) mod (List.length !opt_target_addrs);
+    | _ -> ()
 
 let reset_heuristics () =
   Hashtbl.iter
     (fun k lpi -> lpi.cur_pattern <- !opt_fixed_pattern)
     opt_loop_pattern;
   incr total_iter_count;
+  incr_target_addr ();
   ()
 
 let apply_pattern ipcfg header prog_info =
@@ -470,11 +515,17 @@ let cjmp_heuristic_wrapper eip targ1 targ2 r dir =
 let opt_cfg_fname = ref None
 let opt_warn_fname = ref None
 
-(* When the warning is in a library function, warn_addr is the address
-   in the library, and target_addr is the one in the main program the
-   warning is attributed to. *)
-let opt_warn_addr = ref None
-let opt_target_addr = ref None
+let read_lines_file fname =
+  let ic = open_in fname and
+      l = ref [] in
+    try
+      while true do
+        l := (input_line ic) :: !l
+      done;
+      failwith "Unreachable (infinite loop)"
+    with
+      | End_of_file ->
+          List.rev !l
 
 let main argv = 
   Arg.parse
@@ -504,8 +555,14 @@ let main argv =
 	     (fun s -> opt_cfg_fname := Some s),
 	   "filename Load specified serialized CFG");
 	  ("-target-addr", Arg.String
-	     (fun s -> opt_target_addr := Some (Int64.of_string s)),
+	     (fun s ->
+		opt_target_addrs := (Int64.of_string s) :: !opt_target_addrs),
 	   "addr Address in program you would like to cover");
+	  ("-target-addrs-file", Arg.String
+	     (fun s ->
+		opt_target_addrs := !opt_target_addrs @
+		  List.map Int64.of_string (read_lines_file s)),
+	   "filename Read multiple '-target-addr's from a file");
 	  ("-loop-weight", Arg.String
 	     (fun s -> 
 		let (s1, s2) = Exec_options.split_string '=' s in
@@ -533,11 +590,12 @@ let main argv =
 	  ("-rank-base", Arg.Set_int(opt_rank_base),
 	   "N Allow rank to decrease by N before stopping path");
  	  ("-warn-addr", Arg.String
- 	     (fun s -> opt_warn_addr := Some (Int64.of_string s)),
+ 	     (fun s ->
+		opt_warn_addrs := (Int64.of_string s) :: !opt_warn_addrs),
  	   "addr Warning address you would like to cover");
 	  ("-warn-file", Arg.String
 	     (fun s -> opt_warn_fname := Some s),
-	   "filename Load static warnings from file");
+	   "filename Load serialized static warnings from file");
 	  ("-which-branch-heur", Arg.Set_int(opt_which_branch_heur),
 	   "i i=0: xprod+log; i=1: distance difference");
 	]))
@@ -557,11 +615,13 @@ let main argv =
   let asmir_gamma = Asmir.gamma_create 
     (List.find (fun (i, s, t) -> s = "mem") dl) dl
   in
-    (match (!opt_cfg_fname, !opt_warn_fname, !opt_target_addr,
-	    !opt_warn_addr) with
-       | (None, None, None, None) -> ()
-       | (Some fname, None, Some addr, None) -> load_cfg fname addr
-       | (Some fname, Some warn_fname, Some taddr, Some waddr)
+    (match (!opt_cfg_fname, !opt_warn_fname, !opt_target_addrs,
+	    !opt_warn_addrs) with
+       | (None, None, [], []) -> ()
+       | (Some fname, None, [addr], []) -> load_cfg fname addr
+       | (Some fname, None, targets, [])
+	 -> load_cfg_multi_targets fname targets
+       | (Some fname, Some warn_fname, [taddr], [waddr])
 	 -> load_cfg_warn fname warn_fname waddr taddr
        | _ ->
 	   failwith
@@ -582,6 +642,7 @@ let main argv =
     dt_or := Some bdt;
     let symbolic_init = Exec_set_options.make_symbolic_init fm infl_man in
     let (start_addr, fuzz_start) = Exec_set_options.decide_start_addrs () in
+      incr_target_addr ();
       Exec_fuzzloop.fuzz start_addr fuzz_start
 	!Exec_options.opt_fuzz_end_addrs fm asmir_gamma symbolic_init
 	reset_heuristics

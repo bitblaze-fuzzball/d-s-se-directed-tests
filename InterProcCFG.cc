@@ -386,6 +386,25 @@ InterProcCFG::compute_shortest_paths() {
 
 }
 
+void
+InterProcCFG::add_target_addr(addr_t target_addr,
+			      map<addr_t, Function *> &functions) {
+    BasicBlock *target_bb = lookup_bb(G2_ADDR(target_addr), functions);
+    assert(target_bb);
+    IPCFGNode dst_node = bb_to_node[target_bb];
+    property_map<IPCFGraph, vertex_distance_t>::type
+ 	distance = get(vertex_distance_t(), ipcfg);
+    dijkstra_shortest_paths(ipcfg, dst_node,
+			    distance_map(distance));
+    graph_traits<IPCFGraph>::vertex_iterator vi, vi_end;
+    for (tie(vi, vi_end) = vertices(ipcfg); vi != vi_end; ++vi) {
+	unsigned long long d = distance[*vi];
+	//printf("Copying distance %lld to multi_distance(%d, %d)\n", d,
+	//       (int)*vi, (int)dst_node);
+	multi_distance[pair<IPCFGNode,IPCFGNode>(*vi, dst_node)] = d;
+    }
+}
+
 BasicBlock*
 InterProcCFG::lookup_bb(addr_t addr,
 			map<addr_t, Function *> &functions) {
@@ -426,6 +445,33 @@ InterProcCFG::lookup_distance(addr_t source_addr,
 	return distance[bb_to_node[source_bb]];
     else
 	return -1;
+}
+
+long long
+InterProcCFG::lookup_multi_distance(addr_t source_addr, addr_t target_addr,
+				    map<addr_t, Function *> &functions) {
+    BasicBlock *source_bb = lookup_bb(source_addr, functions);
+    if (!source_bb) {
+	//printf("Distance is -1 because of missing source\n");
+	return -1;
+    }
+    IPCFGNode source_node = bb_to_node[source_bb];
+    BasicBlock *target_bb = lookup_bb(G2_ADDR(target_addr), functions);
+    if (!target_bb) {
+	//printf("Distance is -1 because of missing target\n");
+	return -1;
+    }
+    IPCFGNode target_node = bb_to_node[target_bb];
+    pair<IPCFGNode, IPCFGNode> p =
+	pair<IPCFGNode, IPCFGNode>(source_node, target_node);
+    map<pair<IPCFGNode, IPCFGNode>, unsigned long long>::const_iterator it;
+    it = multi_distance.find(p); 
+    if (it != multi_distance.end()) {
+	//printf("Distance is %lld\n", (*it).second);
+	return (*it).second;
+    }
+    //printf("Distance is -1 because of missing pair\n");
+    return -1;
 }
 
 int

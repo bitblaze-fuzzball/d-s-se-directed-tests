@@ -13,9 +13,18 @@ void interproc_cfg_set_target_addr([in] interproc_cfg ipcfg,
 
 void interproc_cfg_compute_shortest_paths([in] interproc_cfg ipcfg);
 
+void interproc_cfg_add_target_addr([in] interproc_cfg ipcfg,
+				   [int64] unsigned int addr,
+				   [in] program_info pi);
+
 long long interproc_cfg_lookup_distance([in] interproc_cfg ipcfg,
 					[int64] unsigned int addr,
 					[in] program_info pi);
+
+long long interproc_cfg_lookup_multi_distance([in] interproc_cfg ipcfg,
+					      [int64] unsigned int from_addr,
+					      [int64] unsigned int to_addr,
+					      [in] program_info pi);
 
 int interproc_cfg_lookup_influence([in] interproc_cfg ipcfg,
 				   [int64] unsigned int addr,
@@ -34,10 +43,13 @@ boolean interproc_cfg_edge_is_loop_exit([in] interproc_cfg ipcfg,
 					[int64] unsigned int to_addr,
 					[in] program_info pi);
 
+void interproc_cfg_load_warnings([in] interproc_cfg ipcfg,
+				 [in] program_info pi,
+				 [string] const char *fname);
+
 void interproc_cfg_set_target_warning([in] interproc_cfg ipcfg,
 				      [int64] unsigned int addr,
-				      [in] program_info pi,
-				      [string] const char *fname);
+				      [in] program_info pi);
 
 boolean
 interproc_cfg_is_interesting_loop([in] interproc_cfg ipcfg,

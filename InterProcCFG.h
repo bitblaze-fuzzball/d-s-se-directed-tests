@@ -53,6 +53,7 @@ class InterProcCFG {
     IPCFGraph ipcfg;
     IPCFGNode target_node;
     Warning *warning;
+    map<pair<IPCFGNode, IPCFGNode>, unsigned long long> multi_distance;
     set<addr_t> interesting_loops;
 
     tr1::unordered_map<addr_t, BasicBlock *> bb_lookup_cache;
@@ -76,8 +77,12 @@ class InterProcCFG {
     void set_target_warning(Warning *w,
 			 map<addr_t, Function *> &functions);
     void compute_shortest_paths();
+    void add_target_addr(addr_t target_addr,
+			 map<addr_t, Function *> &functions);
     long long lookup_distance(addr_t source_addr,
 			      map<addr_t, Function *> &functions);
+    long long lookup_multi_distance(addr_t source_addr, addr_t target_addr,
+				    map<addr_t, Function *> &functions);
     int lookup_influence(addr_t addr,
 			 map<addr_t, Function *> &functions,
 			 influence_map_t *influence);
