@@ -648,6 +648,7 @@ let main argv =
     Options_solver.apply_solver_cmdline_opts fm;
     State_loader.apply_state_loader_cmdline_opts fm;
     Exec_set_options.apply_cmdline_opts_late fm;
+    if !Exec_options.opt_log_eip_sequence then (fm#add_extra_eip_hook Eip_sequence_logger.add);
     Hashtbl.iter
       (fun _ (exp_str, er) ->
 	 er := Some (Vine_parser.parse_exp_from_string dl exp_str))
