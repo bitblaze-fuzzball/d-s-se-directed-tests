@@ -651,6 +651,12 @@ void VSAInterpreter<T>::visitMoveInstr(MoveInstr &m) {
                         temp.name == "R_ACFLAG" ||
                         temp.name == "EFLAGSREST" ||
                         temp.name == "R_EMWARN" ||
+			temp.name == "R_XMM0L" ||
+			temp.name == "R_XMM1L" ||
+			temp.name == "R_XMM2L" ||
+			temp.name == "R_XMM0H" ||
+			temp.name == "R_XMM1H" ||
+			temp.name == "R_XMM2H" ||
 			temp.name == "R_IP_AT_SYSCALL"),
                        "Found an undeclared temporary '%s'.", 
                        temp.name.c_str());
@@ -1059,6 +1065,12 @@ VSAInterpreter<T>::visitTempExpr(TempExpr& E) {
                     E.name == "R_IDFLAG" ||
                     E.name == "R_ACFLAG" ||
                     E.name == "EFLAGSREST" ||
+		    E.name == "R_XMM0L" ||
+		    E.name == "R_XMM1L" ||
+		    E.name == "R_XMM2L" ||
+		    E.name == "R_XMM0H" ||
+		    E.name == "R_XMM1H" ||
+		    E.name == "R_XMM2H" ||
                     E.name == "R_EMWARN"),
                     "Found an undeclared temporary '%s'.", E.name.c_str());
         return ValSetTy::getTop();
@@ -1077,9 +1089,10 @@ VSAInterpreter<T>::visitConstExpr(ConstExpr& E) {
         case vine::REG_32:
             return ValSetTy::get(E.val, 4);
         case vine::REG_64:
-            assert(sizeof(int)*CHAR_BIT == 64 &&
-            "Recompile on a 64-bit machine.");
-            break;
+	    return ValSetTy::get(E.val, 8);
+            //assert(sizeof(int)*CHAR_BIT == 64 &&
+            //"Recompile on a 64-bit machine.");
+	    //break;
         default:
             assert(false && "Unsupported type.");
             break;

@@ -99,7 +99,7 @@ public: // For testing
     typedef Graph<BasicBlock *, BasicBlockEdge *> cfg_t;
     typedef std::map<addr_t,functions_t> Adr2FunMapTy;
     typedef Adr2FunMapTy::const_iterator adr2fun_const_iterator;
-    
+
     std::map<addr_t, BasicBlock *> addr2bb;
     // Map instructions to called functions
     Adr2FunMapTy calls;

@@ -250,12 +250,26 @@ AbstractInterpreter<SubClass, ValSetTy, StateTy>::visit(Expression& E) {
             DELEGATE(CastExpr, visit(ce.exp))
         } break;
         case vine::ITE: // XXX should have a proper delegation
+        case vine::FUNOP:
+        case vine::FCAST:
+        case vine::FBINOP:
         case vine::UNKNOWN:
             return ValSetTy::getTop();
             break;
+        case vine::PHI:
+	    assert(false && "Reached vine::PHI, an unhandled expression type.");
+        case vine::NAME:
+	    assert(false && "Reached vine::NAME, an unhandled expression type.");
+        case vine::LET:
+	    assert (false && "Reached vine::LET, an unhandled expression type.");
+	    break;
+        case vine::VECTOR:
+	    assert(false && "Reached vine::VECTOR, an unhandled expression type.");
+        case vine::EXTENSION:
+	    assert(false && "Reached vine::EXTENSION, an unhandled expression type.");
         default:
-            assert(false && "Unhandled expression type.");
-            return VSetPtr();
+	    assert(false && "Reached an unknown, unhandled expression type.");
+	    return VSetPtr();
     }
 #undef DELEGATE
 }
@@ -281,9 +295,37 @@ AbstractInterpreter<SubClass,ValSetTy,StateTy>::visit(Statement& S) {
         case vine::VARDECL: // Create a temporary
             DELEGATE(VarDeclInstr)
             break;
-        case vine::CALL:
-            visitCallInstr(static_cast<const CallInstr&>(S));
-            break;
+        case vine::CALL: {
+	    //	    fprintf(stderr, "TESTING ");
+	    BasicBlock *bb = cur_bb;
+	    assert(bb);
+	    Cfg *cfg = cur_bb->getCfg();
+	    assert(cfg);
+	    bool rec = false;
+	    
+	    for (functions_t::const_iterator ctit = cfg->call_targets_begin(*bb); 
+		 ctit != cfg->call_targets_end(*bb); ++ctit) {
+		Cfg *f_cfg = (*ctit)->getCfg();
+		//		fprintf(stderr, " CFG\n");
+		assert(f_cfg);
+		Function* f = f_cfg->getFunction();
+		//		assert(f);
+		for (func_list_t::const_iterator cit = callstack.begin();
+		     cit != callstack.end(); ++cit) {
+		    //		    fprintf(stderr, " GOT FUNCTION %.8x %.8x \n", (*cit)->getAddress(), f->getAddress());
+		    if ((*cit)->getAddress() == f->getAddress()) {
+			rec = true;
+		    }
+		}
+	    }
+	    if (!rec) {
+		//		fprintf(stderr, " ENTERING (%.8x)\n", cur_instr->getAddress());
+		visitCallInstr(static_cast<const CallInstr&>(S));
+	    } else {
+		fprintf(stderr, "WARNING: Recursive function call (%.8x), ignoring.\n", cur_instr->getAddress());
+	    } 
+	    break;
+	}
         case vine::RETURN:
             DELEGATE(ReturnInstr)
             break;
@@ -357,8 +399,10 @@ AbstractInterpreter<SubClass,ValSetTy,StateTy>::visitCallInstr(CallInstr
 
 	// Interpret all functions starting from the same initial state since
 	// only one function is effectively called
+	//	fprintf(stderr, "THIS FAR\n");
 	visit((*ctit)->getCfg(), cur_instr->getAddress());
-
+	//	fprintf(stderr, "BUT NO FURTHER\n");
+	
 	// Save the state after the call
 	if (cutOff < 0) {
 	    states_after_call.push_back(cur_state->discardFrame(cutOff));
@@ -742,10 +786,24 @@ inline void AbstractInterpreter<S, V, St>::putComponentInWorklist(BasicBlock &bb
 	     cfg->wto_end(); ++wit) {
 	// TODO: Temporary hack to avoid an extra layer of iterators
 	BasicBlock *bb2 = cfg->getVertex(*wit); 
-	if (bb2->getAddress() == rec_addr) {
-	    //fprintf(stderr, "Skipping recursive function block: %.8x\n", rec_addr);
-	    continue;
+	bool rec = false;
+	/* fprintf(stderr, "\nchecking block: %.8x\n", bb2->getAddress());
+	for (func_list_t::const_iterator cit = callstack.begin(); 
+	     cit != callstack.end(); ++cit) {
+	    fprintf(stderr, "%.8x\t", (*cit)->getAddress());
+		    //	    fprintf(stderr, "%.8x (%s@%s)\t", (*cit)->getAddress(), (*cit)->getName(), 
+		    //(*cit)->getModule());
+	    if ((*cit)->getAddress() == bb2->getAddress()) {
+		rec = true;
+		break;
+	    }
 	}
+
+	//	if (bb2->getAddress() == rec_addr) {
+	if (rec && (rec_addr == bb2->getAddress())) {
+	    fprintf(stderr, "\t\tSkipping recursive function block: %.8x\n", bb2->getAddress());
+	    continue;
+	    } */
 
 	if (&bb == cfg->getComponent(bb2))
 	    // Mark the component as entered
@@ -802,7 +860,9 @@ inline void AbstractInterpreter<S, V, St>::visit(Cfg &cfg, addr_t
     // Worklist (used for tracking the block that requires interpretation)
     bb_list_t worklist;
     // Put all the basic blocks in the worklist
+    //    fprintf(stderr, "WORKLIST\n");
     putComponentInWorklist(*cfg.getEntry(), worklist, rec_addr);
+    //    fprintf(stderr, "WORKLIST DONE\n");
 
     BasicBlock *bb = 0, *pbb = 0;
     while (!worklist.empty()) {
@@ -967,8 +1027,9 @@ inline addr_t AbstractInterpreter<S,V,St>::enterFunction(Function &f,
     // *************************************************************************
     // Put the function the in callstack (slow!)
     debug2("\tCurrent callstack:");
-    addr_t rec_addr;
+    addr_t rec_addr = 0x0;
     bool rec = false;
+    debug2(" %.8x (%s@%s)\n", f.getAddress(), f.getName(), f.getModule());
     for (func_list_t::const_iterator cit = callstack.begin(); 
 	 cit != callstack.end(); ++cit) {
 	debug2(" %.8x (%s@%s)", (*cit)->getAddress(), (*cit)->getName(), 
@@ -977,13 +1038,13 @@ inline addr_t AbstractInterpreter<S,V,St>::enterFunction(Function &f,
 	    rec = true;
 	}
     }
-    debug2(" %.8x (%s@%s)\n", f.getAddress(), f.getName(), f.getModule());
     if (rec) {
 	rec_addr = f.getAddress();
-	fprintf(stderr, "WARNING: Recursive function call (%.8x), ignoring.\n", rec_addr);
+	//fprintf(stderr, "WARNING: Recursive function call (%.8x), ignoring.\n", rec_addr);
     } else {
-	callstack.push_back(&f);
+	;
     }
+    callstack.push_back(&f);
     //assert_msg(!rec, "Recursive function call (%.8x)", f.getAddress());
 
     // *************************************************************************
@@ -1015,8 +1076,11 @@ inline addr_t AbstractInterpreter<S,V,St>::enterFunction(Function &f,
     debug2("\tCurrent context: %s\n", cur_context->tostring().c_str());
 
     // Remove self loops to simplify the analysis
+    //    fprintf(stderr, "!!");
     f.getCfg()->removeSelfLoops();
+    //    fprintf(stderr,"^^");
     f.getCfg()->sanityCheck(true);
+    //    fprintf(stderr,"&&");
 
     // Compute WTO
     f.getCfg()->computeWeakTopologicalOrdering();
