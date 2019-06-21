@@ -81,8 +81,11 @@ tools:
 
 .PHONY: clean
 clean:
-	-@rm -f *.o *.d $(EXEs) *.cmx *.cmi *.cmo \
+	-@rm -f *.o $(EXEs) *.cmx *.cmi *.cmo \
 	   cfgs_stubs.c cfgs.ml cfgs.mli cfgs.h
+
+clean-deps:
+	-@rm -f *.d
 
 %.d: %.c
 	$(CXX) $(CXXFLAGS) $(TOOL_CXXFLAGS) -MM -MT '$(patsubst src/%,obj/%,$(patsubst %.c,%.o,$<))' $< > $@
