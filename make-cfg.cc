@@ -47,6 +47,7 @@ FILE *DEBUG_FILE = stderr;
 static const char *dot = NULL;
 static const char *vcg = NULL;
 static const char *json = NULL;
+extern int total_inst;
 
 Prog the_prog;
 const char *prog_name;
@@ -272,6 +273,7 @@ void print_usage(){
     << "--max-instructions=<number> Maximum instructions per function, infinite by default." << std::endl;
 }
 
+
 int main(int argc, char **argv) {
     char *tmpstr;
     const char *cfg_out;
@@ -291,6 +293,7 @@ int main(int argc, char **argv) {
     size_t ph_count, i;
     int match_count = 0;
 
+    total_inst = 0;
     Elf32_Addr *ubphdr;
     Elf32_Addr *lbphdr;
     std::vector<char*> indirect_files;

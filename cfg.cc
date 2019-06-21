@@ -7,9 +7,13 @@
 #define NDEBUG // disable asserts
 #include <cassert>
 
+#define MAX_INST 150000
+
 extern "C" {
 #include "xed-interface.h"
 }
+
+int total_inst;
 
 BasicBlock *Cfg::addBasicBlock(addr_t addr) {
     BasicBlock *b;
@@ -904,6 +908,7 @@ void Cfg::augmentCfg(addr_t start, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int num
     std::list<std::pair<addr_t, addr_t> > wlist;
     std::list<std::pair<addr_t, addr_t> > indirect_wlist;
     std::set<addr_t> done;
+
     uint32_t inst_count = 0;
     int i;
     addr_t prev = 0;
@@ -936,7 +941,8 @@ void Cfg::augmentCfg(addr_t start, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int num
         //Section *sec = prog->getSection(wlist.front().first);
 	addr_t addr_n = wlist.front().first;
 	bool ok = false;
-	if (inst_count++ > max_inst) {
+	total_inst++;
+	if (inst_count++ > max_inst || total_inst > MAX_INST) {
 	    debug2("WARNING: Maximum instructions reached!\n");
 	    break;
 	} 
@@ -988,7 +994,8 @@ void Cfg::augmentCfg(addr_t start, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int num
     }
 
     while (!wlist.empty()) {
-	if (inst_count++ > max_inst) {
+	total_inst++;
+	if (inst_count++ > max_inst || total_inst > MAX_INST) {
 	    debug2("WARNING: Maximum instructions reached!\n");
 	    break;
 	}

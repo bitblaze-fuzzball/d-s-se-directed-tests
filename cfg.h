@@ -93,6 +93,7 @@ public:
     BasicBlock *getTarget();    
 };
 
+extern int total_inst;
 
 class Cfg : public Graph<BasicBlock *, BasicBlockEdge *> {
 public: // For testing
@@ -240,6 +241,7 @@ public:
     functions_t::const_iterator call_targets_begin(const BasicBlock &bb);
     functions_t::const_iterator call_targets_end(const BasicBlock &bb);
 };
+
 
 #endif
 
