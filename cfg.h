@@ -93,7 +93,7 @@ public:
     BasicBlock *getTarget();    
 };
 
-extern int total_inst;
+extern uint32_t total_inst;
 
 class Cfg : public Graph<BasicBlock *, BasicBlockEdge *> {
 public: // For testing
@@ -158,7 +158,8 @@ public:
 
     void addCall(addr_t caller, Function *callee);
 
-    void augmentCfg(addr_t, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs, uint32_t max_inst, std::map<addr_t, Function *> &funcs, std::vector<std::pair<addr_t, addr_t>> &indirect);
+    void augmentCfg(addr_t, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs, uint32_t max_inst, uint32_t max_func_inst, 
+		    std::map<addr_t, Function *> &funcs, std::vector<std::pair<addr_t, addr_t>> &indirect);
     
     BasicBlock *getEntry() const {
 	return entry;

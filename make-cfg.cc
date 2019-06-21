@@ -47,7 +47,7 @@ FILE *DEBUG_FILE = stderr;
 static const char *dot = NULL;
 static const char *vcg = NULL;
 static const char *json = NULL;
-extern int total_inst;
+extern uint32_t total_inst;
 
 Prog the_prog;
 const char *prog_name;
@@ -108,14 +108,14 @@ std::string funcname(addr_t addr) {
     }
 }
 
-void build_cfg(Elf32_Addr *lbphdr, Elf32_Addr *ubphdr, int numsegs, uint32_t max_instructions) {
+void build_cfg(Elf32_Addr *lbphdr, Elf32_Addr *ubphdr, int numsegs, uint32_t max_func_instructions, uint32_t max_instructions) {
     CallGraph *callgraph = the_prog.getCallGraph();
-
+    
     debug("Maximum instructions per function: ");
-    if (max_instructions == UINT_MAX) {
+    if (max_func_instructions == UINT_MAX) {
       debug("infinity\n");
     } else {
-      debug("%d\n",  max_instructions);
+      debug("%d\n",  max_func_instructions);
     }
 
     // Augment the CFGs of the called functions
@@ -144,7 +144,7 @@ void build_cfg(Elf32_Addr *lbphdr, Elf32_Addr *ubphdr, int numsegs, uint32_t max
                 (*fit)->setModule(prog_name);
                 (*fit)->setProg(&the_prog);
             }
-            (*fit)->getCfg()->augmentCfg((*fit)->getAddress(), lbphdr, ubphdr, numsegs, max_instructions, functions, indirects);
+            (*fit)->getCfg()->augmentCfg((*fit)->getAddress(), lbphdr, ubphdr, numsegs, max_func_instructions, max_instructions, functions, indirects);
             if ((*fit)->isPending()) {
                 (*fit)->setPending(false);
                 functions[(*fit)->getAddress()] = *fit;
@@ -270,7 +270,8 @@ void print_usage(){
     << "--cfg-out=<target-output> Where to store the control flow graph output." << std::endl
     << "--addresses-file=<target-input> Set of points to start CFG generation from." << std::endl
     << "--indirects-file=<target-input> An set of association lists (can repeat option for multiple input files)." << std::endl
-    << "--max-instructions=<number> Maximum instructions per function, infinite by default." << std::endl;
+    << "--max-func-instructions=<number> Maximum instructions per function, infinite by default." << std::endl
+    << "--max-instructions=<number> Maximum total instructions, infinite by default." << std::endl;
 }
 
 
@@ -279,6 +280,7 @@ int main(int argc, char **argv) {
     const char *cfg_out;
     const char *addresses_filename;
     uint32_t max_instructions = UINT_MAX;
+    uint32_t max_func_instructions = UINT_MAX;
 
     Elf32_Phdr *phdr;
     Elf32_Phdr gphdr;
@@ -330,6 +332,10 @@ int main(int argc, char **argv) {
 
     if((tmpstr = argv_getString(argc, argv, "--indirects-file=", NULL)) != NULL ) {
       indirect_files.push_back(tmpstr);
+    }
+
+    if((tmpstr = argv_getString(argc, argv, "--max-func-instructions=", NULL)) != NULL ) {
+      max_func_instructions = atoi(tmpstr);
     }
 
     if((tmpstr = argv_getString(argc, argv, "--max-instructions=", NULL)) != NULL ) {
@@ -495,7 +501,7 @@ int main(int argc, char **argv) {
     load_indirects(&the_prog, lbphdr, ubphdr, match_count, indirect_files); 
 
     /* sample_disass(entry_name, start); */
-    build_cfg(lbphdr, ubphdr, match_count, max_instructions);
+    build_cfg(lbphdr, ubphdr, match_count, max_func_instructions, max_instructions);
 
     (void)phdr;
     (void)ph_count;

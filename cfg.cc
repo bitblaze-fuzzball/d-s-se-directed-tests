@@ -7,13 +7,11 @@
 #define NDEBUG // disable asserts
 #include <cassert>
 
-#define MAX_INST 150000
-
 extern "C" {
 #include "xed-interface.h"
 }
 
-int total_inst;
+uint32_t total_inst;
 
 BasicBlock *Cfg::addBasicBlock(addr_t addr) {
     BasicBlock *b;
@@ -903,7 +901,7 @@ void Cfg::augmentCfg(std::list<std::pair<addr_t, addr_t> > &wlist,
 // Statically augment the CFG. The process consists of two passes: (1)
 // recursive traversal disassembly starting from the entry point, (2) recursive
 // traversal starting from indirect control transfer instrutions
-void Cfg::augmentCfg(addr_t start, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs, uint32_t max_inst, 
+void Cfg::augmentCfg(addr_t start, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs, uint32_t max_func_inst, uint32_t max_inst,
 		     std::map<addr_t, Function *> &funcs, std::vector<std::pair<addr_t, addr_t>> &indirects) {
     std::list<std::pair<addr_t, addr_t> > wlist;
     std::list<std::pair<addr_t, addr_t> > indirect_wlist;
@@ -942,7 +940,7 @@ void Cfg::augmentCfg(addr_t start, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int num
 	addr_t addr_n = wlist.front().first;
 	bool ok = false;
 	total_inst++;
-	if (inst_count++ > max_inst || total_inst > MAX_INST) {
+	if (inst_count++ > max_func_inst || total_inst > max_inst) {
 	    debug2("WARNING: Maximum instructions reached!\n");
 	    break;
 	} 
@@ -995,7 +993,7 @@ void Cfg::augmentCfg(addr_t start, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int num
 
     while (!wlist.empty()) {
 	total_inst++;
-	if (inst_count++ > max_inst || total_inst > MAX_INST) {
+	if (inst_count++ > max_func_inst || total_inst > max_inst) {
 	    debug2("WARNING: Maximum instructions reached!\n");
 	    break;
 	}
