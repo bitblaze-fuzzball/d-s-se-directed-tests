@@ -1,6 +1,8 @@
 #ifndef __GRAPH_H__
 #define __GRAPH_H__
 
+
+#define NDEBUG
 #include <list>
 #include <vector>
 #include <boost/graph/graph_traits.hpp>
@@ -141,9 +143,16 @@ protected:
 	assert(hasVertex(vd));
 	
 	boost::tie(oi, oe) = out_edges(vd, graph);
-	assert(oi == oe);
+	if (oi != oe) {
+	    fprintf(stderr, "Warning: Graph might be inconsistent.\n");
+	    //exit(-1);
+	    //assert(oi == oe);
+	}
 	boost::tie(ii, ie) = in_edges(vd, graph);
-	assert(ii == ie);
+	if (ii != ie) {
+	    fprintf(stderr, "Warning: Graph might be inconsistent.\n");
+	}
+	//assert(ii == ie);
 
 	if (vd == entry_vertex)
 	    entry_vertex = boost::graph_traits<graph_t>::null_vertex();
