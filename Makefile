@@ -19,7 +19,7 @@ LDFLAGS += -Llib
 
 # These are similar to $(LDFLAGS), but with -ccopt/-cclib in front
 # of each one. (Wonder if we could do this automatically)
-LDFLAGS_OCAML = -cclib -lstdc++ -ccopt -Llib -ccopt -Lboost/lib -cclib -lboost_serialization -cclib -lboost_iostreams -cclib -lcamlidl -ccopt -Lfuzzball/libasmir/src -cclib -lasmir -ccopt -Lfuzzball/stp -cclib VEX/libvex.a -cclib -lopcodes -cclib -lbfd -cclib -lz -ccopt -L$(PIN_KIT)/extras/xed2-ia32/lib -cclib -lxed -cclib -lbz2 # -ccopt -Wl,-rpath=`pwd`/boost/lib
+LDFLAGS_OCAML = -cclib -lstdc++ -ccopt -Llib -ccopt -Lboost/lib -cclib -lboost_serialization -cclib -lboost_iostreams -cclib -lcamlidl -ccopt -Lfuzzball/libasmir/src -cclib -lasmir -ccopt -Lfuzzball/stp -cclib VEX/libvex.a -cclib -lopcodes -cclib -lbfd -cclib -lz -ccopt -L$(PIN_XED)/lib -cclib -lxed -cclib -lbz2 # -ccopt -Wl,-rpath=`pwd`/boost/lib
 
 ## PIN
 TARGET_COMPILER = gnu
@@ -27,7 +27,10 @@ TARGET := ia32
 CFLAGS += -m32
 TOOL_LDFLAGS += -m32
 INCL = ./include
-PIN_KIT = ./pin-2.13-65163-gcc.4.4.7-linux
+#PIN_KIT = ./pin-2.13-65163-gcc.4.4.7-linux
+#PIN_XED = $(PIN_KIT)/extras/xed2-ia32
+PIN_KIT = ./pin-2.14-71313-gcc.4.4.7-linux
+PIN_XED = $(PIN_KIT)/extras/xed-ia32
 PIN_ROOT = $(PIN_KIT)
 PIN_HOME = $(PIN_KIT)/source/tools
 # This tells the PIN's makefile which build we want (optimized/debug)
@@ -49,8 +52,9 @@ override CXXFLAGS+=$(shell if [ -z $(ENABLE_OPTIMIZED) ]; then echo $(DBGFLAGS);
 override CFLAGS+=$(shell if [ -z $(ENABLE_OPTIMIZED) ]; then echo $(DBGFLAGS); else echo $(OPTFLAGS); fi)
 ###
 
-CXXFLAGS += -I$(PIN_KIT)/extras/xed-ia32/include
-LDFLAGS += -L$(PIN_KIT)/extras/xed2-ia32/lib/
+# This -I is duplicated in Pin's $(TOOL_CXXFLAGS)
+#CXXFLAGS += -I$(PIN_XED)/include
+LDFLAGS += -L$(PIN_XED)/lib
 LIBS += -lxed
 
 OBJs = cfg.o func.o callgraph.o instr.o 

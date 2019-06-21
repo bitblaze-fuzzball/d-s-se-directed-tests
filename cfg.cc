@@ -631,7 +631,7 @@ int disassemble(addr_t addr, addr_t &next1, addr_t &next2,
     category = xed_decoded_inst_get_category(&xedd);
     len = xed_decoded_inst_get_length(&xedd);
     if (buf)
-	xed_decoded_inst_dump_att_format(&xedd, buf, bufsize, 0);
+	xed_decoded_inst_dump(&xedd, buf, bufsize);
 
     next1 = next2 = 0xFFFFFFFF;
 
