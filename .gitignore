@@ -5,6 +5,8 @@
 /boost
 /fuzzball
 /pin-2.13-65163-gcc.4.4.7-linux
+/pin-2.14-71313-gcc.4.4.7-linux
+/pin-2.14-71313-gcc.4.4.7-linux.tar.gz
 /cfgs.h
 /cfgs.ml
 /cfgs.mli

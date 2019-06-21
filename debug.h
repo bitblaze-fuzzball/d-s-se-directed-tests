@@ -132,7 +132,10 @@ static const char *disasm(unsigned char *addr) {
 
     xed_decoded_inst_zero_set_mode(&xedd, &dstate);
     xed_decode(&xedd, (const xed_uint8_t*) addr, 16);
-    xed_decoded_inst_dump_att_format(&xedd, buf, sizeof(buf), 0);
+    /* With Pin 2.13, we used xed_decoded_inst_dump_att_format, but it
+       appears to have been removed in the version of XED distributed
+       with Pin 2.14. */
+    xed_decoded_inst_dump(&xedd, buf, sizeof(buf));
 
     return buf;
 }
