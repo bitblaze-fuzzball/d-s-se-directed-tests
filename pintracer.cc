@@ -17,6 +17,7 @@
 #include <fstream>
 #include <vector>
 #include <map>
+#include <limits.h>
 
 #include "callstack.h"
 #include "argv_readparam.h"
@@ -145,7 +146,7 @@ static void augment_cfg() {
 		    (*fit)->setModule(modulename((*fit)->getAddress()).c_str());
 		    (*fit)->setProg(&prog);
 		}
-		(*fit)->getCfg()->augmentCfg((*fit)->getAddress(), functions, indirects);
+		(*fit)->getCfg()->augmentCfg((*fit)->getAddress(), NULL, NULL, 0, UINT_MAX, functions, indirects);
 		if ((*fit)->isPending()) {
 		    (*fit)->setPending(false);
 		    functions[(*fit)->getAddress()] = *fit;

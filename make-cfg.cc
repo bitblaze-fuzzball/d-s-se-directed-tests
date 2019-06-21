@@ -15,6 +15,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <limits.h>
 
 #include <elf.h>
 #include <libelf.h>
@@ -106,8 +107,15 @@ std::string funcname(addr_t addr) {
     }
 }
 
-void build_cfg() {
+void build_cfg(Elf32_Addr *lbphdr, Elf32_Addr *ubphdr, int numsegs, uint32_t max_instructions) {
     CallGraph *callgraph = the_prog.getCallGraph();
+
+    debug("Maximum instructions per function: ");
+    if (max_instructions == UINT_MAX) {
+      debug("infinity\n");
+    } else {
+      debug("%d\n",  max_instructions);
+    }
 
     // Augment the CFGs of the called functions
     std::set<Function *> worklist;
@@ -135,7 +143,7 @@ void build_cfg() {
                 (*fit)->setModule(prog_name);
                 (*fit)->setProg(&the_prog);
             }
-            (*fit)->getCfg()->augmentCfg((*fit)->getAddress(), functions, indirects);
+            (*fit)->getCfg()->augmentCfg((*fit)->getAddress(), lbphdr, ubphdr, numsegs, max_instructions, functions, indirects);
             if ((*fit)->isPending()) {
                 (*fit)->setPending(false);
                 functions[(*fit)->getAddress()] = *fit;
@@ -178,7 +186,6 @@ bool in_segments(Elf32_Addr addr_n, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int nu
   // [2015-02-16] seems common enough worry to be split out
   int i;
   for (i = 0; i < numsegs; i++) {
-    //printf("%.8x between %.8x and %.8x? ", addr_n, lbphr[i], ubphr[i]);
     if ((addr_n >= lbphr[i]) && (addr_n <= ubphr[i])) {
       return true;
     }
@@ -202,13 +209,13 @@ void load_addresses(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs, 
         func->setProg(p);
         functions[addr_n] = func;
       } else {
-        fprintf(stderr, "Warning: %.8x is not within any executable segment.\n", addr_n);
+        fprintf(stderr, "WARNING: %.8x is not within any executable segment.\n", addr_n);
       }
     }
     fclose(file);
   } else {
     // ignore error opening. will just be regular input
-    printf("Did not load supplementary addresses from file.\n");
+    fprintf(stderr, "WARNING: Did not load supplementary addresses from file.\n");
   }
 }
 
@@ -243,7 +250,7 @@ void load_indirects(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs,
           if (in_segments(addr_to, lbphr, ubphr, numsegs)) {
             indirects.push_back(std::pair<addr_t, addr_t>(addr_to, addr_from));
           } else {
-	    fprintf(stderr, "Warning: Indirect jump point %.8x in %s outside of executable segment, ignoring.\n", addr_to, *file_it);
+	    fprintf(stderr, "WARNING: Indirect jump point %.8x in %s outside of executable segment, ignoring.\n", addr_to, *file_it);
           }
         }
       }
@@ -260,14 +267,16 @@ void print_usage(){
     << "--json=<target-output> where to output json representation of cfg" << std::endl
     << "--vcg=<target-output> where to output vcg representation of the cfg" << std::endl
     << "--cfg-out=<target-output> Where to store the control flow graph output." << std::endl
-    << "--addresses-file=<target-input> Set of points to start CFG generation from" << std::endl
-    << "--indirects-file=<target-input> An set of association lists (can repeat option for multiple input files)" << std::endl;
+    << "--addresses-file=<target-input> Set of points to start CFG generation from." << std::endl
+    << "--indirects-file=<target-input> An set of association lists (can repeat option for multiple input files)." << std::endl
+    << "--max-instructions=<number> Maximum instructions per function, infinite by default." << std::endl;
 }
 
 int main(int argc, char **argv) {
     char *tmpstr;
     const char *cfg_out;
     const char *addresses_filename;
+    uint32_t max_instructions = UINT_MAX;
 
     Elf32_Phdr *phdr;
     Elf32_Phdr gphdr;
@@ -318,6 +327,10 @@ int main(int argc, char **argv) {
 
     if((tmpstr = argv_getString(argc, argv, "--indirects-file=", NULL)) != NULL ) {
       indirect_files.push_back(tmpstr);
+    }
+
+    if((tmpstr = argv_getString(argc, argv, "--max-instructions=", NULL)) != NULL ) {
+      max_instructions = atoi(tmpstr);
     }
     
     if (argc < 2 || argv[argc - 1][0] == '-') {
@@ -479,7 +492,7 @@ int main(int argc, char **argv) {
     load_indirects(&the_prog, lbphdr, ubphdr, match_count, indirect_files); 
 
     /* sample_disass(entry_name, start); */
-    build_cfg();
+    build_cfg(lbphdr, ubphdr, match_count, max_instructions);
 
     (void)phdr;
     (void)ph_count;

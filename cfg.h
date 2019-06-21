@@ -1,11 +1,13 @@
 #ifndef __CFG_H__
 #define __CFG_H__
 
+#include <elf.h>
 #include "types.h"
 #include "graph.h"
 #include "func.h"
 #include "instr.h"
 #include "json_spirit_writer_template.h"
+#include <stdint.h>
 #include <map>
 
 class Function;
@@ -155,7 +157,7 @@ public:
 
     void addCall(addr_t caller, Function *callee);
 
-    void augmentCfg(addr_t, std::map<addr_t, Function *> &funcs, std::vector<std::pair<addr_t, addr_t>> &indirect);
+    void augmentCfg(addr_t, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs, uint32_t max_inst, std::map<addr_t, Function *> &funcs, std::vector<std::pair<addr_t, addr_t>> &indirect);
     
     BasicBlock *getEntry() const {
 	return entry;

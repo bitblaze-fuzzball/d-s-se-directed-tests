@@ -4,7 +4,7 @@
 #include "prog.h"
 //#include "json_spirit_reader_template.h"
 #include "debug.h"
-//#define NDEBUG // disable asserts
+#define NDEBUG // disable asserts
 #include <cassert>
 
 extern "C" {
@@ -753,13 +753,13 @@ disassemble(addr_t addr, byte_t *code, addr_t &next1, addr_t &next2,
     xed_decoded_inst_zero_set_mode(&xedd, &dstate);
     xed_error = xed_decode(&xedd, code, 16);
     if (xed_error == XED_ERROR_GENERAL_ERROR) {
-	fprintf(stdout, "Warning! Could not decode instruction at %.8x, length ignored is 1. Inserting (bad) in buffer.\n", addr);
+	fprintf(stdout, "WARNING: Could not decode instruction at %.8x, length ignored is 1. Inserting (bad) in buffer.\n", addr);
 	snprintf(buf, bufsize, "(bad)");
 	return 1;
     }
     // assert(xed_error == XED_ERROR_NONE);
     if (xed_error != XED_ERROR_NONE) {
-	fprintf(stdout, "Warning! Error code from XED at %.8x: %d. Inserting (bad) in buffer.\n", addr, xed_error);
+	fprintf(stdout, "WARNING: Error code from XED at %.8x: %d. Inserting (bad) in buffer.\n", addr, xed_error);
 	snprintf(buf, bufsize, "(bad)");
 	return 1;
     }
@@ -850,14 +850,14 @@ void Cfg::augmentCfg(std::list<std::pair<addr_t, addr_t> > &wlist,
 	pos = BASICBLOCK_MIDDLE;
 
     debug2(" Statically processing instruction %.8x "
-	   "(%d bytes long, successor of %.8x, pos %d)\n", 
-	   curr, len, prev, pos);
+    	   "(%d bytes long, successor of %.8x, pos %d)\n", 
+    	   curr, len, prev, pos);
+    //debug2(" Statically processing instruction %.8x\n", 
+    //   curr);
 
     // Add instruction to the CFG if not in there already
     addInstruction(curr, addr2bytes(this, curr), len, pos, prev, 
 		   category == XED_CATEGORY_RET);
-
-    debug2(" Processed instruction \n");
 
     // Add a call target if necessary
     if (category == XED_CATEGORY_CALL && next2 != 0xFFFFFFFF) {
@@ -899,10 +899,13 @@ void Cfg::augmentCfg(std::list<std::pair<addr_t, addr_t> > &wlist,
 // Statically augment the CFG. The process consists of two passes: (1)
 // recursive traversal disassembly starting from the entry point, (2) recursive
 // traversal starting from indirect control transfer instrutions
-void Cfg::augmentCfg(addr_t start, std::map<addr_t, Function *> &funcs, std::vector<std::pair<addr_t, addr_t>> &indirects) {
+void Cfg::augmentCfg(addr_t start, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs, uint32_t max_inst, 
+		     std::map<addr_t, Function *> &funcs, std::vector<std::pair<addr_t, addr_t>> &indirects) {
     std::list<std::pair<addr_t, addr_t> > wlist;
+    std::list<std::pair<addr_t, addr_t> > indirect_wlist;
     std::set<addr_t> done;
-
+    uint32_t inst_count = 0;
+    int i;
     addr_t prev = 0;
 
     //Prog *prog = this->getFunction()->getProg();
@@ -929,10 +932,25 @@ void Cfg::augmentCfg(addr_t start, std::map<addr_t, Function *> &funcs, std::vec
     // First pass, recursive traversal disassembly
     wlist.push_back(std::pair<addr_t, addr_t>(start, prev));
     while (!wlist.empty()) {
-        Prog *prog = this->getFunction()->getProg();
-        Section *sec = prog->getSection(wlist.front().first);
-        if (!sec) {            
-            debug2("attempting to disassemble at a non-executable code segment at %.8x.\n", wlist.front().second);
+        //Prog *prog = this->getFunction()->getProg();
+        //Section *sec = prog->getSection(wlist.front().first);
+	addr_t addr_n = wlist.front().first;
+	bool ok = false;
+	if (inst_count++ > max_inst) {
+	    debug2("WARNING: Maximum instructions reached!\n");
+	    break;
+	} 
+	if (ubphr != NULL && lbphr != NULL) {
+	    for (i = 0; i < numsegs; i++) {
+		if ((addr_n >= lbphr[i]) && (addr_n <= ubphr[i])) {
+		    ok = true; 
+		    break;
+		}
+	    }
+	} else ok = true;
+
+        if (!ok) {
+            debug2("attempting to disassemble at a non-executable code segment at %.8x.\n", wlist.front().first);
             wlist.pop_front();
             continue;
         }
@@ -964,44 +982,44 @@ void Cfg::augmentCfg(addr_t start, std::map<addr_t, Function *> &funcs, std::vec
 		       (*bbit)->getAddress(), 
 		       (*bbit)->getAddress() + (*bbit)->getSize(), prev, buf);
 		wlist.push_back(std::pair<addr_t, addr_t>
-				((*bbit)->getAddress(), prev));
+ 				((*bbit)->getAddress(), prev));
 	    }
 	}
     }
 
-
-    // handle indirects
-    wlist.insert(wlist.end(), indirects.begin(), indirects.end());
-    
     while (!wlist.empty()) {
+	if (inst_count++ > max_inst) {
+	    debug2("WARNING: Maximum instructions reached!\n");
+	    break;
+	}
+	augmentCfg(indirect_wlist, done, funcs, indirects);
+    }
+    debug2("Second pass completed\n");
+
+    // handle indirects    
+    indirect_wlist.insert(indirect_wlist.end(), indirects.begin(), indirects.end());
+
+    while (!indirect_wlist.empty()) {
         Prog *prog = this->getFunction()->getProg();
-        Section *sec = prog->getSection(wlist.front().first);
-	// is this indirect source within the function block?
-	addr_t end_addr = start + this->getFunction()->getSize();
-	addr_t curr = wlist.front().first;
-	addr_t prev = wlist.front().second;
+        Section *sec = prog->getSection(indirect_wlist.front().first);
+	addr_t curr = indirect_wlist.front().first;
+	addr_t prev = indirect_wlist.front().second;
 
 	if (done.find(prev) == done.end()) {
-	    //debug2("not done yet: from %.8x to %.8x \n", prev, curr);
-	    //addr_t tmp0;
-	    //xed_category_enum_t tmp1;
-	    //static char buf[128];
-	    
-	    //disassemble(prev, addr2bytes(this, prev),
-	    //        tmp0, tmp0, tmp1, buf, sizeof(buf));
 	    wlist.pop_front();
 	    continue;
 	}
 	
         if (!sec) {
-            debug2("attempting to disassemble at a non-executable code segment at %.8x.\n", wlist.front().second);
-            wlist.pop_front();
+            debug2("attempting to disassemble at a non-executable code segment at %.8x.\n", indirect_wlist.front().second);
+            indirect_wlist.pop_front();
             continue;
         }
-	augmentCfg(wlist, done, funcs, indirects);
-	} 
+	augmentCfg(indirect_wlist, done, funcs, indirects);
+    }
 
-    debug2("Second pass completed\n");
+    debug2("Third pass (indirects) complete\n");
+
 }
 
 void Cfg::setExecuted(addr_t i) {
