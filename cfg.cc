@@ -4,7 +4,7 @@
 #include "prog.h"
 //#include "json_spirit_reader_template.h"
 #include "debug.h"
-#define NDEBUG // disable asserts
+//#define NDEBUG // disable asserts
 #include <cassert>
 
 extern "C" {
@@ -857,6 +857,8 @@ void Cfg::augmentCfg(std::list<std::pair<addr_t, addr_t> > &wlist,
     addInstruction(curr, addr2bytes(this, curr), len, pos, prev, 
 		   category == XED_CATEGORY_RET);
 
+    debug2(" Processed instruction \n");
+
     // Add a call target if necessary
     if (category == XED_CATEGORY_CALL && next2 != 0xFFFFFFFF) {
 	if (function->getProg()->isPlt(next2)) {
@@ -934,7 +936,6 @@ void Cfg::augmentCfg(addr_t start, std::map<addr_t, Function *> &funcs, std::vec
             wlist.pop_front();
             continue;
         }
-
 	augmentCfg(wlist, done, funcs, indirects);
     }
 
@@ -973,8 +974,32 @@ void Cfg::augmentCfg(addr_t start, std::map<addr_t, Function *> &funcs, std::vec
     wlist.insert(wlist.end(), indirects.begin(), indirects.end());
     
     while (!wlist.empty()) {
+        Prog *prog = this->getFunction()->getProg();
+        Section *sec = prog->getSection(wlist.front().first);
+	// is this indirect source within the function block?
+	addr_t end_addr = start + this->getFunction()->getSize();
+	addr_t curr = wlist.front().first;
+	addr_t prev = wlist.front().second;
+
+	if (done.find(prev) == done.end()) {
+	    //debug2("not done yet: from %.8x to %.8x \n", prev, curr);
+	    //addr_t tmp0;
+	    //xed_category_enum_t tmp1;
+	    //static char buf[128];
+	    
+	    //disassemble(prev, addr2bytes(this, prev),
+	    //        tmp0, tmp0, tmp1, buf, sizeof(buf));
+	    wlist.pop_front();
+	    continue;
+	}
+	
+        if (!sec) {
+            debug2("attempting to disassemble at a non-executable code segment at %.8x.\n", wlist.front().second);
+            wlist.pop_front();
+            continue;
+        }
 	augmentCfg(wlist, done, funcs, indirects);
-    }
+	} 
 
     debug2("Second pass completed\n");
 }

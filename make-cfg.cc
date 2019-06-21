@@ -118,6 +118,9 @@ void build_cfg() {
         worklist.insert(fit->second);
     }
 
+    // put all indirects in the worklist
+    //worklist.insert(worklist.end(), indirects.begin(), indirects.end());
+
     while (!worklist.empty()) {
         debug("\n\n----------------------------------------\n\n");
         for (std::set<Function *>::iterator fit = worklist.begin();
@@ -156,7 +159,6 @@ void build_cfg() {
                     functions_t::const_iterator ctit;
                     for (ctit = (*iit)->call_targets_begin();
                          ctit != (*iit)->call_targets_end(); ctit++) {
-
                         // The function has not been processed yet
                         assert(functions.find((*ctit)->getAddress()) !=
                                functions.end());
@@ -198,7 +200,6 @@ void load_addresses(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs, 
       if (in_segments(addr_n, lbphr, ubphr, numsegs)) {
         Function *func = new Function(line, addr_n, 0, prog_name);
         func->setProg(p);
-        //indirects[addr_n] = func;
         functions[addr_n] = func;
       } else {
         fprintf(stderr, "Warning: %.8x is not within any executable segment.\n", addr_n);
@@ -236,12 +237,13 @@ void load_indirects(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs,
             fprintf(stderr, "WARNING: Value too big to be a 32-bit address in file %s\n, ignoring.", *file_it);
           }
           Elf32_Addr addr_to = int(*jumps_it);
+	  if (addr_to == addr_from || addr_to == 0) continue;
           debug2("jumping to %.8x\n", addr_to);
           // [2015-02-16] sorry this is global
           if (in_segments(addr_to, lbphr, ubphr, numsegs)) {
-            indirects.push_back(std::pair<addr_t, addr_t>(addr_from, addr_to));
+            indirects.push_back(std::pair<addr_t, addr_t>(addr_to, addr_from));
           } else {
-            fprintf(stderr, "Warning: Indirect jump point %.8x in %s outside of executable segment, ignoring.\n", addr_to, *file_it);
+	    fprintf(stderr, "Warning: Indirect jump point %.8x in %s outside of executable segment, ignoring.\n", addr_to, *file_it);
           }
         }
       }
@@ -473,6 +475,8 @@ int main(int argc, char **argv) {
     func->setProg(&the_prog);
 
     load_addresses(&the_prog, lbphdr, ubphdr, match_count, addresses_filename);
+
+    load_indirects(&the_prog, lbphdr, ubphdr, match_count, indirect_files); 
 
     /* sample_disass(entry_name, start); */
     build_cfg();
