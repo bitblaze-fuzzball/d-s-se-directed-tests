@@ -6,6 +6,24 @@ specific to FuzzBomb/CGC version of the code.
 only recursive disassembly from the entry point (or other entry points
 supplied on the command line), without doing dynamic tracing.
 
+Like the cgc-branch of FuzzBALL, this branch contains modifications
+originally created as part of the FuzzBomb project for the DARPA Cyber
+Grand Challenge (CGC, https://cgc.darpa.mil/). It was joint work
+between the University of Minnesota and SIFT:
+
+http://www.sift.net/research/artificial-intelligence/fuzzbomb
+
+The original development was in SVN; SVN log entries are included in
+the Git commit comments, though the authorship information is not
+accurate in the Git metadata. Here's the interpretation of SVN user
+names:
+
+jbenton = J. Benton (https://ti.arc.nasa.gov/profile/j-benton/)
+jthayer = Jordan Thayer (http://www.jordanthayer.com/)
+musliner = David Musliner (http://www.sift.net/staff/david-musliner)
+sfriedman = Scott Friedman (http://www.sift.net/staff/scott-friedman)
+smccamant = Stephen McCamant <mccamant@cs.umn.edu>
+
 This code still has a lot of old and finicky build dependencies.
 Though we haven't resolved any of the hard aspects of this in the
 process of making the open-source release, I can document here one
@@ -22,7 +40,15 @@ don't have sudo access there, so I recompiled various tools from
 source to work around limitations of the system packages. I used:
 
 - g++ (GCC) 4.8.5, recompiled from source with attention to 32-bit
-target support
+target support.
+
+  In particular the UMN machines are missing a symlink from
+  /usr/include/asm to /usr/include/x86-64-linux-gnu/asm that would
+  normally be part of multi-arch GCC, so I manually created a symlink
+  from $prefix/x86_64-unknown-linux-gnu/include/asm pointing at
+  /usr/include/x86_64-linux-gnu/asm, where $prefix is the installation
+  prefix of my GCC, in my case
+  /project/mccamant/soft/amd64/gnu/gcc/4.8.5.
 
 - bzip2-1.0.6 libbz2.a, recompiled for 32-bit (used by Boost)
 
