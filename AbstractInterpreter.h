@@ -6,6 +6,11 @@
 #ifndef ABSTRACT_INTERPRETER_H
 #define ABSTRACT_INTERPRETER_H
 
+// defines chance we skip a traversal of a function
+// guaranted to traverse a function at least BIAS_FACTOR times
+// i.e., calculated by BIAS_FACTOR / (number of times we traversed) 
+#define BIAS_FACTOR 10
+
 #include "Utilities.h"
 #include "Rand.h"
 #include "cfg.h"
@@ -17,6 +22,7 @@
 #include <vector>
 #include <set>
 #include <string>
+#include <stdlib.h>
 #ifndef NDEBUG
 #include <sstream>
 #endif
@@ -318,9 +324,18 @@ AbstractInterpreter<SubClass,ValSetTy,StateTy>::visit(Statement& S) {
 		    }
 		}
 	    }
+
 	    if (!rec) {
 		//		fprintf(stderr, " ENTERING (%.8x)\n", cur_instr->getAddress());
-		visitCallInstr(static_cast<const CallInstr&>(S));
+		CallInstr& ci = static_cast<const CallInstr&>(S);
+		int at_depth = depth[&ci];
+		++at_depth;
+		double p = ((double)rand() / (double)RAND_MAX);
+		if (((double)BIAS_FACTOR / (double)at_depth) > p) {
+		    //fprintf(stderr, " count %d traversal for (%.8x)\n", at_depth, cur_instr->getAddress());
+		    visitCallInstr(static_cast<const CallInstr&>(S));
+		}
+		depth[&ci] = at_depth;
 	    } else {
 		fprintf(stderr, "WARNING: Recursive function call (%.8x), ignoring.\n", cur_instr->getAddress());
 	    } 

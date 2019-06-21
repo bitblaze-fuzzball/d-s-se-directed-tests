@@ -4,6 +4,8 @@
 // - no, putting anything into a common path is stupid, this is supposed to be
 // a shared program, so of course you will get perms/file conflicts if you do this...
 
+#include <stdlib.h>
+
 #include "cfg.h"
 #include "callgraph.h"
 #include "serialize.h"
@@ -200,6 +202,8 @@ int main(int argc, char **argv) {
 	 "expires")
         ;
     opts.add(mandatory).add(optional);
+
+    srand(0);
 
     try {
         store(parse_command_line(argc, argv, opts), vm);
