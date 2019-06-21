@@ -814,7 +814,7 @@ disassemble(addr_t addr, byte_t *code, addr_t &next1, addr_t &next2,
 
 void Cfg::augmentCfg(std::list<std::pair<addr_t, addr_t> > &wlist, 
 		     std::set<addr_t> &done, 
-		     std::map<addr_t, Function *> &funcs, std::map<addr_t, Function *> &indirects) {
+		     std::map<addr_t, Function *> &funcs, std::vector<std::pair<addr_t, addr_t>> &indirects) {
     addr_t curr, prev, next1, next2;
     int len = 0, pos = 0;
     bool isret;
@@ -875,12 +875,7 @@ void Cfg::augmentCfg(std::list<std::pair<addr_t, addr_t> > &wlist,
 	    // This should not happen, but it happens and I don't know why!
 	    debug("Invalid NULL call target\n");
 	}
-    } // else if (category == XED_CATEGORY_CALL && (indirects.size() != 0)) { // i.e., indirect
-    // for (functions_map_t::iterator fit = indirects.begin();
-    //fit != indirects.end(); fit++) {
-    //	    addCall(curr, funcs.find(fit->second->getAddress())->second);
-    //	}
-    //}
+    }
 
     // Update the worklist
     if (done.find(curr) == done.end()) {
@@ -902,7 +897,7 @@ void Cfg::augmentCfg(std::list<std::pair<addr_t, addr_t> > &wlist,
 // Statically augment the CFG. The process consists of two passes: (1)
 // recursive traversal disassembly starting from the entry point, (2) recursive
 // traversal starting from indirect control transfer instrutions
-void Cfg::augmentCfg(addr_t start, std::map<addr_t, Function *> &funcs, std::map<addr_t, Function *> &indirects) {
+void Cfg::augmentCfg(addr_t start, std::map<addr_t, Function *> &funcs, std::vector<std::pair<addr_t, addr_t>> &indirects) {
     std::list<std::pair<addr_t, addr_t> > wlist;
     std::set<addr_t> done;
 
@@ -947,7 +942,7 @@ void Cfg::augmentCfg(addr_t start, std::map<addr_t, Function *> &funcs, std::map
 
     // Second pass, disassembly targets of indirect calls and jumps that have
     // been reached dynamically but couldn't be reached during the first pass
-    // for obviuos reasons
+    // for obvious reasons
     for (Cfg::const_bb_iterator bbit = bb_begin();
 	 bbit != bb_end(); bbit++) {
 	// The basic block hasn't been processed yet
@@ -973,6 +968,10 @@ void Cfg::augmentCfg(addr_t start, std::map<addr_t, Function *> &funcs, std::map
 	}
     }
 
+
+    // handle indirects
+    wlist.insert(wlist.end(), indirects.begin(), indirects.end());
+    
     while (!wlist.empty()) {
 	augmentCfg(wlist, done, funcs, indirects);
     }

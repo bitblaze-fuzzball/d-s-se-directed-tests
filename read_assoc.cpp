@@ -13,7 +13,7 @@ static struct option long_options[] =
     {0,0,0,0}
   };
 
-static unsigned int split(const std::string &txt, std::vector<std::string> &strs, char ch){
+unsigned int split(const std::string &txt, std::vector<std::string> &strs, char ch){
   // stolen from stack overflow because I'm lazy.
   // pushes strings delimited by the token ch into a vector
   unsigned int pos = txt.find( ch );
@@ -31,7 +31,7 @@ static unsigned int split(const std::string &txt, std::vector<std::string> &strs
   return strs.size();
 }
 
-static vector<long> parseLine(string list){
+vector<long> parseLine(string list){
   // read in a simple space delimited line of hex digits
   // set up for the split
   vector<string> nums;
@@ -44,7 +44,7 @@ static vector<long> parseLine(string list){
   return ret;
 }
 
-static vector<vector<long>> handlefile(ifstream &fstream){
+vector<vector<long>> handlefile(ifstream &fstream){
   // take a single line from ifstream and return the vector of numbers.
   string current;
   vector<vector<long>> lines;
@@ -59,7 +59,7 @@ static void print_usage(){
 	    << "--addr_file <FileName>: the file to read in." << endl;
 }
 
-int main(int argc, char** argv){
+/* int main(int argc, char** argv){
 
   int verbose_flag = 0;
   int option_index = 0;
@@ -98,4 +98,4 @@ int main(int argc, char** argv){
   vector<vector<long>> addresses = handlefile(myFile);
   myFile.close();
 
-}
+  } */

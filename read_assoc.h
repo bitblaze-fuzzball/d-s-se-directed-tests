@@ -10,8 +10,8 @@
 
 using namespace std;
 
-static unsigned int split(const std::string &txt, std::vector<std::string> &strs, char ch);
-static vector<long> parseLine(string list);
-static vector<vector<long>> handlefile(ifstream &fstream);
+unsigned int split(const std::string &txt, std::vector<std::string> &strs, char ch);
+vector<long> parseLine(string list);
+vector<vector<long>> handlefile(ifstream &fstream);
 
 #endif

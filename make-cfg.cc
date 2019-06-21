@@ -24,6 +24,7 @@ extern "C" {
 #include <xed-interface.h>
 }
 
+#include "read_assoc.h"
 #include "argv_readparam.h"
 #include "types.h"
 #include "prog.h"
@@ -50,7 +51,7 @@ Prog the_prog;
 const char *prog_name;
 
 functions_map_t functions;
-functions_map_t indirects;
+std::vector<pair<addr_t, addr_t>> indirects;
 
 unsigned char *code = 0;
 addr_t code_base;
@@ -170,35 +171,37 @@ void build_cfg() {
     }
 }
 
+
+bool in_segments(Elf32_Addr addr_n, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs) {
+  // [2015-02-16] seems common enough worry to be split out
+  int i;
+  for (i = 0; i < numsegs; i++) {
+    //printf("%.8x between %.8x and %.8x? ", addr_n, lbphr[i], ubphr[i]);
+    if ((addr_n >= lbphr[i]) && (addr_n <= ubphr[i])) {
+      return true;
+    }
+  }
+  return false;
+}
+
 void load_addresses(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs, const char* filename) {
   //  static const char filename[] = "addresses.txt";
   FILE *file = fopen (filename, "r");
   char line[40];
-  int i;
-  bool bad;
+
   if (file != NULL) {
     printf("Loaded addresses from %s\n", filename);
     while (fgets(line, sizeof line, file) != NULL) {
       Elf32_Addr addr_n;
       addr_n = atoi(line);
 
-      bad = true;
-      for (i = 0; i < numsegs; i++) {
-        //printf("%.8x between %.8x and %.8x? ", addr_n, lbphr[i], ubphr[i]);
-        if ((addr_n >= lbphr[i]) && (addr_n <= ubphr[i])) {
-          //printf("true\n");
-          bad = false;
-        } //else
-          //printf("false\n");
-      }
-
-      if (!bad) {
+      if (in_segments(addr_n, lbphr, ubphr, numsegs)) {
         Function *func = new Function(line, addr_n, 0, prog_name);
         func->setProg(p);
-        indirects[addr_n] = func;
+        //indirects[addr_n] = func;
         functions[addr_n] = func;
       } else {
-        printf("Warning: %.8x is not within any executable segment.\n", addr_n);
+        fprintf(stderr, "Warning: %.8x is not within any executable segment.\n", addr_n);
       }
     }
     fclose(file);
@@ -208,6 +211,46 @@ void load_addresses(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs, 
   }
 }
 
+
+void load_indirects(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs,
+                    std::vector<char*> &filenames) {
+  std::vector<char*>::iterator file_it;
+  
+  for (file_it=filenames.begin();file_it!=filenames.end();++file_it) {
+    ifstream file(*file_it, ios::in);
+    if (!file.is_open()) {
+      fprintf(stderr, "WARNING: Could not open %s, but continuing anyway.\n", *file_it);
+    } else {
+      vector<vector<long>> addresses = handlefile(file);
+
+      std::vector<vector<long>>::iterator addresses_it;
+      std::vector<long>::iterator jumps_it;
+      for (addresses_it=addresses.begin();addresses_it!=addresses.end();++addresses_it) {
+        if (addresses_it->front() > INT_MAX) {
+          fprintf(stderr, "WARNING: Value too big to be a 32-bit address in file %s\n, ignoring.", *file_it);
+        }
+        Elf32_Addr addr_from = int(addresses_it->front());
+        debug2("jumping from %.8x\n", addr_from);
+        for (jumps_it=addresses_it->begin(); jumps_it!=addresses_it->end();++jumps_it) {
+          if (*jumps_it > INT_MAX) {
+            fprintf(stderr, "WARNING: Value too big to be a 32-bit address in file %s\n, ignoring.", *file_it);
+          }
+          Elf32_Addr addr_to = int(*jumps_it);
+          debug2("jumping to %.8x\n", addr_to);
+          // [2015-02-16] sorry this is global
+          if (in_segments(addr_to, lbphr, ubphr, numsegs)) {
+            indirects.push_back(std::pair<addr_t, addr_t>(addr_from, addr_to));
+          } else {
+            fprintf(stderr, "Warning: Indirect jump point %.8x in %s outside of executable segment, ignoring.\n", addr_to, *file_it);
+          }
+        }
+      }
+    }
+    file.close();
+  }
+ 
+}
+
 void print_usage(){
   std::cerr
     << "Usage: make-cfg [options] program" << std::endl
@@ -215,7 +258,8 @@ void print_usage(){
     << "--json=<target-output> where to output json representation of cfg" << std::endl
     << "--vcg=<target-output> where to output vcg representation of the cfg" << std::endl
     << "--cfg-out=<target-output> Where to store the control flow graph output." << std::endl
-    << "--addresses-file=<target-input> Set of points to start CFG generation from" << std::endl;
+    << "--addresses-file=<target-input> Set of points to start CFG generation from" << std::endl
+    << "--indirects-file=<target-input> An set of association lists (can repeat option for multiple input files)" << std::endl;
 }
 
 int main(int argc, char **argv) {
@@ -238,6 +282,7 @@ int main(int argc, char **argv) {
 
     Elf32_Addr *ubphdr;
     Elf32_Addr *lbphdr;
+    std::vector<char*> indirect_files;
 
     if((tmpstr = argv_getString(argc, argv, "--dot=", NULL)) != NULL ) {
         dot = tmpstr;
@@ -269,6 +314,10 @@ int main(int argc, char **argv) {
       addresses_filename = "addresses.txt";
     }
 
+    if((tmpstr = argv_getString(argc, argv, "--indirects-file=", NULL)) != NULL ) {
+      indirect_files.push_back(tmpstr);
+    }
+    
     if (argc < 2 || argv[argc - 1][0] == '-') {
       print_usage();
       exit(1);
@@ -329,7 +378,11 @@ int main(int argc, char **argv) {
       //max_addr = std::max(max_addr, shdr->sh_addr + shdr->sh_size);
 //    }
 
-    assert(match_count >= 1); // at least one executable segment
+    if (match_count == 0) {
+      fprintf(stderr, "Cannot produce CFG; file must have at least one executable segment!");
+      exit(1);
+    }
+    //assert(match_count >= 1); // at least one executable segment
 
     the_prog.addModule(min_addr, max_addr - min_addr, prog_name, true);
 

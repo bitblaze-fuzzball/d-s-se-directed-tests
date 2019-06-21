@@ -51,7 +51,7 @@ static ADDRINT last_instruction = 0;
 static ADDRINT current_function = 0;
 // Map addresses to functions
 static map <ADDRINT, Function *> functions;
-static map <ADDRINT, Function *> indirects;
+static vector <pair<ADDRINT, ADDRINT>> indirects;
 // Stack pointer at the time main is entered
 static ADDRINT main_stackptr = 0;
 static CallGraph *callgraph = NULL;
