@@ -264,15 +264,20 @@ AbstractInterpreter<SubClass, ValSetTy, StateTy>::visit(Expression& E) {
             break;
         case vine::PHI:
 	    assert(false && "Reached vine::PHI, an unhandled expression type.");
+            return ValSetTy::getTop();
         case vine::NAME:
 	    assert(false && "Reached vine::NAME, an unhandled expression type.");
+            return ValSetTy::getTop();
         case vine::LET:
 	    assert (false && "Reached vine::LET, an unhandled expression type.");
+            return ValSetTy::getTop();
 	    break;
         case vine::VECTOR:
 	    assert(false && "Reached vine::VECTOR, an unhandled expression type.");
+            return ValSetTy::getTop();
         case vine::EXTENSION:
 	    assert(false && "Reached vine::EXTENSION, an unhandled expression type.");
+            return ValSetTy::getTop();
         default:
 	    assert(false && "Reached an unknown, unhandled expression type.");
 	    return VSetPtr();
