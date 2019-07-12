@@ -126,6 +126,8 @@ VINE_PKGS := -package str,extlib,unix
 %.cmx: %.ml
 	ocamlopt $(OCAMLINCLUDES) -o $@ -c $*.ml
 
+cfgs.cmx: cfgs.cmi
+
 cfgs_test.cmx: cfgs.cmi
 cfgs_test.cmo: cfgs.cmi
 
@@ -138,7 +140,7 @@ cfg_fuzzball.cmx: cfgs.cmi
 cfg_fuzzball.cmo: cfgs.cmi
 
 cfg_fuzzball: $(VINE_LIBS) \
-           cfg_fuzzball.cmx cfgs.cmx \
+           cfgs.cmx cfg_fuzzball.cmx \
            cfgs_stubs.o cfgs_for_ocaml.o PinDisasm.o \
            cfg.o func.o callgraph.o instr.o serialize.o InterProcCFG.o \
 		   Utilities.o
@@ -146,7 +148,7 @@ cfg_fuzzball: $(VINE_LIBS) \
           $+ $(LDFLAGS_OCAML)
 
 cfg_fuzzball.dbg: $(VINE_LIBS_DBG) \
-           cfg_fuzzball.cmo cfgs.cmo \
+           cfgs.cmo cfg_fuzzball.cmo \
            cfgs_stubs.o cfgs_for_ocaml.o PinDisasm.o \
            cfg.o func.o callgraph.o instr.o serialize.o InterProcCFG.o \
 		   Utilities.o
