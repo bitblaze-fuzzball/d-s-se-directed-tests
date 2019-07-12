@@ -161,7 +161,7 @@ cfg_fuzzball: $(VINE_LIBS) \
           $+ $(LDFLAGS_OCAML)
 
 cfg_fuzzball.dbg: $(VINE_LIBS_DBG) \
-           cfg_fuzzball.cmo cfgs.cmo \
+           cfgs.cmo cfg_fuzzball.cmo \
            cfgs_stubs.o cfgs_for_ocaml.o PinDisasm.o \
            cfg.o func.o callgraph.o instr.o serialize.o InterProcCFG.o \
 		   Utilities.o

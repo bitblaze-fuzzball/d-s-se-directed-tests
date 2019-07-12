@@ -613,7 +613,7 @@ let main argv =
 	  ("-which-branch-heur", Arg.Set_int(opt_which_branch_heur),
 	   "i i=0: xprod+log; i=1: distance difference");
 	]))
-    (fun arg -> Exec_set_options.set_program_name arg)
+    (fun arg -> Exec_set_options.set_program_name_guess_arch arg)
     "cfg_fuzzball [options]* program\n";
   let bdt = new BDT.binary_decision_tree in
   let dt = (bdt :> Decision_tree.decision_tree)#init in
