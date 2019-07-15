@@ -611,8 +611,8 @@ static void instrument_image(IMG img, void *v) {
 	    debug("** processing data section %s@%s\n",
 		  SEC_Name(sec).c_str(), IMG_Name(img).c_str());
 	    prog.addSection(SEC_Address(sec), mem, SEC_Size(sec),
-			    SEC_IsReadable(sec) | (SEC_IsWriteable(sec) < 1)
-			    | (SEC_IsExecutable(sec) < 2), secname.c_str());
+			    SEC_IsReadable(sec) | (SEC_IsWriteable(sec) << 1)
+			    | (SEC_IsExecutable(sec) << 2), secname.c_str());
 	    if (deallocate) {
 		delete mem;
 	    }
