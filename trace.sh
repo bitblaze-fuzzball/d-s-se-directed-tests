@@ -1,7 +1,7 @@
 #!/bin/bash
 
 tmp=$(mktemp)
-PIN=./pin-2.13-65163-gcc.4.4.7-linux/pin
+PIN=./pin-2.14-71313-gcc.4.4.7-linux/pin
 OUTDIR="./cfg"
 DEBUG="3"
 
@@ -23,11 +23,11 @@ then
     echo "Invalid argument(s)"
     exit 1
 else
-    PIN_ARGS="--skiplibs=0 --debug=$DEBUG $CHDIR --outprog=$tmp $STATIC"
+    PT_ARGS="--skiplibs=0 --debug=$DEBUG $CHDIR --outprog=$tmp $STATIC"
     PROG="$(which $1)"
     shift 1
     export LD_BIND_NOW=1
-    $PIN -injection child -t pintracer.so $PIN_ARGS -- "$PROG" $*
+    $PIN -ifeellucky -injection child -t pintracer.so $PT_ARGS -- "$PROG" $*
     ret=$?
 
     if [ $ret -eq 0 ]
