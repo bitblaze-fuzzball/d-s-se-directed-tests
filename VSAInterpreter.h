@@ -650,7 +650,14 @@ void VSAInterpreter<T>::visitMoveInstr(MoveInstr &m) {
                         temp.name == "R_IDFLAG" ||
                         temp.name == "R_ACFLAG" ||
                         temp.name == "EFLAGSREST" ||
-                        temp.name == "R_EMWARN"),
+                        temp.name == "R_EMWARN" ||
+			temp.name == "R_XMM0L" ||
+			temp.name == "R_XMM1L" ||
+			temp.name == "R_XMM2L" ||
+			temp.name == "R_XMM0H" ||
+			temp.name == "R_XMM1H" ||
+			temp.name == "R_XMM2H" ||
+			temp.name == "R_IP_AT_SYSCALL"),
                        "Found an undeclared temporary '%s'.", 
                        temp.name.c_str());
 
@@ -906,6 +913,22 @@ VSAInterpreter<T>::visitBinopExpr(BinopExpr& E, VSetPtr L, VSetPtr R) {
 #endif
             res =  ValSetTy::get((int)L->ai_distinct(*R));
             break;
+        case vine::SLT:
+#ifndef NDEBUG
+            ss << "<$";
+#endif
+            {
+                // Comparison on sets is not a total order
+                const bool lt = *L < *R;
+                const bool gte = *L >= *R;
+                const int val = (int)(lt && !gte);
+                res =  ValSetTy::get(val);
+            }
+            break;
+	/* XXX: Currently the implementations for LT (unsigned <) and
+	   SLT (unsigned <=) are the same, but they probably shouldn't
+	   be. The problem is that at the moment AbsDomStridedInterval
+	   only supports signed comparison. */
         case vine::LT:
 #ifndef NDEBUG
             ss << "<";
@@ -915,6 +938,18 @@ VSAInterpreter<T>::visitBinopExpr(BinopExpr& E, VSetPtr L, VSetPtr R) {
                 const bool lt = *L < *R;
                 const bool gte = *L >= *R;
                 const int val = (int)(lt && !gte);
+                res =  ValSetTy::get(val);
+            }
+            break;
+        case vine::SLE:
+#ifndef NDEBUG
+            ss << "<=$";
+#endif
+            {
+                // Comparison on sets is not a total order
+                const bool lte = *L <= *R;
+                const bool gt = *L > *R;
+                const int val = (int)(lte && !gt);
                 res =  ValSetTy::get(val);
             }
             break;
@@ -1058,6 +1093,12 @@ VSAInterpreter<T>::visitTempExpr(TempExpr& E) {
                     E.name == "R_IDFLAG" ||
                     E.name == "R_ACFLAG" ||
                     E.name == "EFLAGSREST" ||
+		    E.name == "R_XMM0L" ||
+		    E.name == "R_XMM1L" ||
+		    E.name == "R_XMM2L" ||
+		    E.name == "R_XMM0H" ||
+		    E.name == "R_XMM1H" ||
+		    E.name == "R_XMM2H" ||
                     E.name == "R_EMWARN"),
                     "Found an undeclared temporary '%s'.", E.name.c_str());
         return ValSetTy::getTop();

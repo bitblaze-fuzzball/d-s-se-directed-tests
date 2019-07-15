@@ -249,9 +249,24 @@ AbstractInterpreter<SubClass, ValSetTy, StateTy>::visit(Expression& E) {
             CastExpr& ce = static_cast<CastExpr&>(E);
             DELEGATE(CastExpr, visit(ce.exp))
         } break;
+        case vine::ITE: // XXX should have a proper delegation
+        case vine::FUNOP:
+        case vine::FCAST:
+        case vine::FBINOP:
         case vine::UNKNOWN:
-            return ValSetTy::getTop();
-            break;
+	    return ValSetTy::getTop();
+	    break;
+        case vine::PHI:
+           assert(false && "Reached vine::PHI, an unhandled expression type.");
+        case vine::NAME:
+           assert(false && "Reached vine::NAME, an unhandled expression type.");
+        case vine::LET:
+           assert (false && "Reached vine::LET, an unhandled expression type.");
+           break;
+        case vine::VECTOR:
+           assert(false && "Reached vine::VECTOR, an unhandled expression type.");
+        case vine::EXTENSION:
+           assert(false && "Reached vine::EXTENSION, an unhandled expression type.");
         default:
             assert(false && "Unhandled expression type.");
             return VSetPtr();
