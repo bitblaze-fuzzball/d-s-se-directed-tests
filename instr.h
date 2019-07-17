@@ -1,17 +1,40 @@
-// TODO:
-// 1) there's a circular dependency bteween cfg.h and instr.h. It's
-// actually needed, because the compiler won't otherwise swallow the
-// vine-enclosed STL libraries. This has to be fixed, as soon as there's
-// time for that.
-
 #ifndef __INSTR_H__
 #define __INSTR_H__
 
 #include <cassert>
 #include <vector>
 #include <ostream>
+
+#include <boost/serialization/vector.hpp>
+
 #include "debug.h"
-#include "cfg.h"
+#include "types.h"
+
+/* There's something a bit ugly going on with the "namespace vine"
+   below. Putting all of the Vine/LibASMIR stuff in its own namespace
+   is a reasonable complexity management idea, since there isn't any
+   other naming convention used to make the LibASMIR code distinct,
+   and it defines lots of common-sounding types. However the LibASMIR
+   code was not designed to live in its own namespace, and putting a
+   namespace declaration around a random include file doesn't
+   necessarily do the right thing. In particular the C++ parts of
+   LibASMIR use a lot of STL include files, but if those inclusions
+   are inside a "namespace vine" the compiler will get confused, for
+   instance thinking that std::cout is really vine::std::cout, so that
+   then other uses will be wrong. The ugly thing that makes it work is
+   include guards: each STL header file is designed to be empty if it
+   has already been included. So as long as all of the STL headers
+   that LibASMIR uses are actually included here before the "namespace
+   vine" code tries to include them, everything will get into the
+   right namespace. This is what the extensive list of STL includes
+   below is for.  -- SMcC */
+
+#include <iostream>
+#include <set>
+#include <map>
+#include <string>
+#include <sstream>
+#include <algorithm>
 
 namespace vine {
 #include "irtoir.h"

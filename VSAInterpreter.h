@@ -913,6 +913,22 @@ VSAInterpreter<T>::visitBinopExpr(BinopExpr& E, VSetPtr L, VSetPtr R) {
 #endif
             res =  ValSetTy::get((int)L->ai_distinct(*R));
             break;
+        case vine::SLT:
+#ifndef NDEBUG
+            ss << "<$";
+#endif
+            {
+                // Comparison on sets is not a total order
+                const bool lt = *L < *R;
+                const bool gte = *L >= *R;
+                const int val = (int)(lt && !gte);
+                res =  ValSetTy::get(val);
+            }
+            break;
+	/* XXX: Currently the implementations for LT (unsigned <) and
+	   SLT (unsigned <=) are the same, but they probably shouldn't
+	   be. The problem is that at the moment AbsDomStridedInterval
+	   only supports signed comparison. */
         case vine::LT:
 #ifndef NDEBUG
             ss << "<";
@@ -922,6 +938,18 @@ VSAInterpreter<T>::visitBinopExpr(BinopExpr& E, VSetPtr L, VSetPtr R) {
                 const bool lt = *L < *R;
                 const bool gte = *L >= *R;
                 const int val = (int)(lt && !gte);
+                res =  ValSetTy::get(val);
+            }
+            break;
+        case vine::SLE:
+#ifndef NDEBUG
+            ss << "<=$";
+#endif
+            {
+                // Comparison on sets is not a total order
+                const bool lte = *L <= *R;
+                const bool gt = *L > *R;
+                const int val = (int)(lte && !gt);
                 res =  ValSetTy::get(val);
             }
             break;
