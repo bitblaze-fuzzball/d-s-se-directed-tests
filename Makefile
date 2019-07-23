@@ -7,7 +7,7 @@ CFLAGS_ASMIR = -Ifuzzball/libasmir -Ifuzzball/libasmir/src/include -IVEX/pub -Ib
 LDFLAGS_ASMIR = -Lbinutils/lib
 LIBS_ASMIR = fuzzball/libasmir/src/libasmir.a VEX/libvex.a -lopcodes -lbfd -liberty -lz
 NDEBUG:=$(shell if [ ! -z $(DISABLE_ASSERTIONS) ]; then echo "-DNDEBUG"; fi)
-CFLAGS = -Wall -Wno-deprecated -Wextra -pipe -ffloat-store -Wno-unused -Wno-unused-parameter $(NDEBUG) -Iboost/include
+CFLAGS = -Wall -Wno-deprecated -Wextra -pipe -ffloat-store -Wno-unused -Wno-unused-parameter $(NDEBUG) -Iboost/include -Ijson_spirit
 LDFLAGS = -Lboost/lib # -Wl,-rpath `pwd`/boost/lib
 LIBS = -lboost_serialization -lboost_iostreams -lbz2
 
