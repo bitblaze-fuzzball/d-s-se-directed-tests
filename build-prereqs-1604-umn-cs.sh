@@ -32,13 +32,16 @@
 # # Store ccache's cache on a local filesystem:
 # export CCACHE_DIR=/export/scratch2/$(whoami)/ccache
 
-# # Check out the d-s-se code tree
+# # Check out the d-s-se code tree, the cgc-branch branch
 # git clone https://github.com/bitblaze-fuzzball/d-s-se-directed-tests.git
 # cd d-s-se-directed-tests
+# git checkout cgc-branch
 
-# Check out FuzzBALL into "fuzzball"
+# Check out FuzzBALL into "fuzzball", also the cgc-branch version for
+# consistency
 git clone https://github.com/bitblaze-fuzzball/fuzzball
 cd fuzzball
+git checkout cgc-branch
 ./autogen.sh
 cd ..
 
