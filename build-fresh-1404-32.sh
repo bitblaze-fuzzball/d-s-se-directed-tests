@@ -10,21 +10,23 @@
 # The next set of commands are commented-out because if you're getting
 # this script from the Git repository, you must have already run them.
 
-# sudo apt-get install git
+# sudo apt-get -y install git
 # git clone https://github.com/bitblaze-fuzzball/d-s-se-directed-tests.git
 # cd d-s-se-directed-tests
-# # git checkout cgc-branch
+# git checkout cgc-branch
 
 sudo apt-get -y install build-essential
 
 sudo apt-get -y install ccache
 
 git clone https://github.com/bitblaze-fuzzball/fuzzball
-# git checkout cgc-branch
+cd fuzzball
+git checkout cgc-branch
+cd ..
 
 ## VEX
 sudo apt-get -y install subversion
-sudo apt-get build-dep valgrind
+sudo apt-get -y build-dep valgrind
 svn co -r3260 svn://svn.valgrind.org/vex/trunk VEX
 cd VEX
 patch -p0 <../fuzzball/vex-r3260.patch
@@ -54,6 +56,7 @@ sudo apt-get -y install zlib1g-dev
 sudo apt-get -y install ocaml
 sudo apt-get -y install ocaml-native-compilers ocaml-findlib
 sudo apt-get -y install camlidl libextlib-ocaml-dev
+sudo apt-get -y install libyojson-ocaml-dev libtyxml-ocaml-dev
 
 ## FuzzBALL
 cd fuzzball
@@ -84,5 +87,3 @@ perl -pi -e 'chomp; $_ = "/* $_ */" if /SYSENTER/; $_ .= "\n";' dietfeatures.h
 make
 cd ..
 
-## Don't ask
-mkdir /tmp/yyy
