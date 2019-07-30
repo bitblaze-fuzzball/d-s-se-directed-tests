@@ -1238,8 +1238,8 @@ Instruction *BasicBlock::getInstruction(addr_t i) {
 	    return *it;
     }
     
-    assert(0);
     fprintf(stderr, "ERROR: Could not find instruction %.8x", i);
+    assert(0);
     return 0;
 }
 
