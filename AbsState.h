@@ -180,22 +180,29 @@ inline BOOSTPTR AbsState<T>::getInitForMain() {
     RegionPtr r = RegionType::getFresh(rg::STRONG_REGISTER);
     RegionPtr l = RegionType::getFresh(rg::STRONG_STACK);
 
-    // Initialize EBP and ESP to point to zero-offset stack
-    r = r->write(reg::ESP_REG, std::make_pair(l, T::get(0,4,4)));
-    r = r->write(reg::EBP_REG, std::make_pair(l, T::get(0,4,4)));
+    unsigned esp = Prog::getDefaultInitialStackPtr();
+
+    // Initialize ESP to a typical constant
+    assert(esp % 4 == 0 &&
+            "Default stack address not properly aligned.");
+    r = r->write(reg::ESP_REG, std::make_pair(l, T::get(esp, 4)));
+
+    // Initialize EBP to 0, meaning no previous stack frame
+    r = r->write(reg::EBP_REG, std::make_pair(l, T::get(0,4)));
+
     // Initialize registers to zero
-    r = r->write(reg::EAX_REG, std::make_pair(g, T::get(0,4,4)));
-    r = r->write(reg::EBX_REG, std::make_pair(g, T::get(0,4,4)));
-    r = r->write(reg::ECX_REG, std::make_pair(g, T::get(0,4,4)));
-    r = r->write(reg::EDX_REG, std::make_pair(g, T::get(0,4,4)));
-    r = r->write(reg::ESI_REG, std::make_pair(g, T::get(0,4,4)));
-    r = r->write(reg::EDI_REG, std::make_pair(g, T::get(0,4,4)));
+    r = r->write(reg::EAX_REG, std::make_pair(g, T::get(0,4)));
+    r = r->write(reg::EBX_REG, std::make_pair(g, T::get(0,4)));
+    r = r->write(reg::ECX_REG, std::make_pair(g, T::get(0,4)));
+    r = r->write(reg::EDX_REG, std::make_pair(g, T::get(0,4)));
+    r = r->write(reg::ESI_REG, std::make_pair(g, T::get(0,4)));
+    r = r->write(reg::EDI_REG, std::make_pair(g, T::get(0,4)));
     // Initialize return addr, argc, argv to (global,top)
-    l = l->write(T::get(0,4,4), std::make_pair(g, T::getTop()));
-    l = l->write(T::get(4,8,4), std::make_pair(g, T::getTop()));
+    l = l->write(T::get(esp+0,4), std::make_pair(g, T::getTop()));
+    l = l->write(T::get(esp+4,4), std::make_pair(g, T::getTop()));
     assert(Prog::getDefaultArgvAddress() % 4 == 0 &&
             "Argv array address not properly aligned.");
-    l = l->write(T::get(8,12,4), std::make_pair(g,
+    l = l->write(T::get(esp+8,4), std::make_pair(g,
                 T::get(Prog::getDefaultArgvAddress(), 4)));
     RBTreePtr t = RBTree::get(g);
     t = t->insert(r);
