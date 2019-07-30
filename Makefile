@@ -57,6 +57,9 @@ override CFLAGS+=$(shell if [ -z $(ENABLE_OPTIMIZED) ]; then echo $(DBGFLAGS); e
 LDFLAGS += -L$(PIN_XED)/lib
 LIBS += -lxed
 
+# Because it took 28 years to standardize hash tables...
+CXXFLAGS += -std=c++11
+
 OBJs = cfg.o func.o callgraph.o instr.o 
 OBJs += trace.o argv_readparam.o pintracer.o vineir.o static.o serialize.o
 OBJs += AbsDomStridedInterval.o HashFunctions.o Rand.o Utilities.o 

@@ -769,7 +769,7 @@ void Cfg::augmentCfg(addr_t start, std::map<addr_t, Function *> &funcs) {
 
     if (strcmp(function->getName(), "exit") == 0 || 
 	strcmp(function->getName(), "pthread_exit") == 0) {
-	debug2("Skipping exit because we do not want to know what happen "
+	debug2("Skipping exit because we do not want to know what happens "
 	       "after\n");
 	clear();
 	addInstruction(function->getAddress(), (byte_t *) "\xc3", 1, 
@@ -789,7 +789,7 @@ void Cfg::augmentCfg(addr_t start, std::map<addr_t, Function *> &funcs) {
 
     // Second pass, disassembly targets of indirect calls and jumps that have
     // been reached dynamically but couldn't be reached during the first pass
-    // for obviuos reasons
+    // for obvious reasons
     for (Cfg::const_bb_iterator bbit = bb_begin();
 	 bbit != bb_end(); bbit++) {
 	// The basic block hasn't been processed yet
@@ -1030,6 +1030,7 @@ Instruction *BasicBlock::getInstruction(addr_t i) {
 	    return *it;
     }
     
+    fprintf(stderr, "ERROR: Could not find instruction %.8x", i);
     assert(0);
     return 0;
 }

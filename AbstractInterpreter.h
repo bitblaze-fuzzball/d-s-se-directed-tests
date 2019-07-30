@@ -268,7 +268,7 @@ AbstractInterpreter<SubClass, ValSetTy, StateTy>::visit(Expression& E) {
         case vine::EXTENSION:
            assert(false && "Reached vine::EXTENSION, an unhandled expression type.");
         default:
-            assert(false && "Unhandled expression type.");
+            assert(false && "Reached an unknown, unhandled expression type.");
             return VSetPtr();
     }
 #undef DELEGATE
@@ -771,7 +771,7 @@ inline void AbstractInterpreter<S, V,
 
 	    if (((&bb == bb2) && putentry) || (&bb != bb2)) {
 		// Put vertex in the worklist if not already in (a vertex could
-		// be already in the worklist in case whe have a loop with
+		// be already in the worklist in case we have a loop with
 		// multiple backages)
 		if (!inWorklist(*bb2, wlist)) {
 		    wlit = wlist.insert(wlit, bb2);
@@ -973,7 +973,7 @@ inline void AbstractInterpreter<S,V,St>::enterFunction(Function &f,
 						addr_t callsite) {
     // *************************************************************************
     // Ensure that the function has at least one exit point
-    assert(!f.getCfg()->exits.empty() && "Function has not exit points.");
+    assert(!f.getCfg()->exits.empty() && "Function has no exit points.");
 
     // *************************************************************************
     // Put the function the in callstack (slow!)

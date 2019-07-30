@@ -417,6 +417,12 @@ let cjmp_heuristic_pattern fm dt prog_info ipcfg header eip targ1 targ2 r dir =
 	| None -> make_choice c
 	| Some b -> update_choice b c; None
 
+(* When the warning is in a library function, warn_addr is the address
+   in the library, and target_addr is the one in the main program the
+   warning is attributed to. *)
+let opt_warn_addr = ref None
+let opt_target_addr = ref None
+
 let opt_fixed_pattern = ref None
 
 let total_iter_count = ref 1
@@ -469,12 +475,6 @@ let cjmp_heuristic_wrapper eip targ1 targ2 r dir =
 
 let opt_cfg_fname = ref None
 let opt_warn_fname = ref None
-
-(* When the warning is in a library function, warn_addr is the address
-   in the library, and target_addr is the one in the main program the
-   warning is attributed to. *)
-let opt_warn_addr = ref None
-let opt_target_addr = ref None
 
 let main argv = 
   Arg.parse
