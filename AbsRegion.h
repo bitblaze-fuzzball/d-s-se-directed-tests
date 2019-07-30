@@ -197,7 +197,7 @@ public:
     int getSize() const { return rbt->treeSize(); }
     // Actual range of valid sizes of the memory region
     StridedIntervalPtr getSizeRange() const { return size; }
-    void print(std::ostream&) const;
+    void print(std::ostream&, bool multi_line = false) const;
 
     // Implemented as friends for symmetry
     template <typename T2>
@@ -393,6 +393,28 @@ inline typename Region<T>::VSetPtr Region<T>::read(TPtr p) const {
     
     assert(p->getStride() > 0 && "Addresses can't have zero strides.");
 
+    if (DEBUG_LEVEL >= 4) {
+	if (isRegister()) {
+	    std::stringstream reg_ss;
+            const char* regName = getRegNameAtAddress(p->getLo(),
+                    p->getHi());
+            if (regName) {
+                reg_ss << regName;
+            } else {
+                reg_ss << *p;
+            }
+	    debug4("Interpreting read from register %s\n",
+		   reg_ss.str().c_str());
+	} else {
+	    std::stringstream region_ss;
+	    print(region_ss, true);
+	    std::stringstream pointer_ss;
+	    p->print(pointer_ss);
+	    debug4("Interpreting read from pointer %s in region %s\n",
+		   pointer_ss.str().c_str(), region_ss.str().c_str());
+	}
+    }
+
     if (!size->subsumes(*p)) {
       WARNING("*** Read out of bounds.");
         return ValueSet<T>::getBot();
@@ -543,6 +565,28 @@ inline typename Region<T>::RegionPtr Region<T>::write(TPtr p,VSetPtr s){
     assert(checkWrite(p, s) && "Invalid write.");
 
     assert(p->getStride() > 0 && "Addresses can't have zero strides.");
+
+    if (DEBUG_LEVEL >= 4) {
+	if (isRegister()) {
+	    std::stringstream reg_ss;
+            const char* regName = getRegNameAtAddress(p->getLo(),
+                    p->getHi());
+            if (regName) {
+                reg_ss << regName;
+            } else {
+                reg_ss << *p;
+            }
+	    debug4("Interpreting write to register %s\n",
+		   reg_ss.str().c_str());
+	} else {
+	    std::stringstream region_ss;
+	    print(region_ss, true);
+	    std::stringstream pointer_ss;
+	    p->print(pointer_ss);
+	    debug4("Interpreting write to pointer %s in region %s\n",
+		   pointer_ss.str().c_str(), region_ss.str().c_str());
+	}
+    }
 
     if (!size->subsumes(*p) || p->isTop()) {
         WARNING("*** Write out of bounds");
@@ -1186,7 +1230,7 @@ inline int Region<T>::getHash() const {
 }
 
 template <typename T>
-inline void Region<T>::print(std::ostream& os) const {
+    inline void Region<T>::print(std::ostream& os, bool multi_line) const {
     os << "Region_" << getId() << '_';
     switch (getRegionType()) {
         case rg::WEAK_GLOBAL:
@@ -1237,7 +1281,10 @@ inline void Region<T>::print(std::ostream& os) const {
         const_iterator J = I;
         ++J;
         if (J != E) {
-            os << " ";
+	    if (multi_line)
+		os << std::endl;
+	    else
+		os << " ";
         }
     }
 }

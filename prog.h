@@ -176,8 +176,37 @@ public:
 	return &callgraph;
     }
 
+    /* Because the stack has its own memory region, it shouldn't be
+       important for correct static analysis that offsets within the
+       stack region match up with the concrete addresses used for the
+       stack when a program is executing regularly. Therefore the
+       historical behavior is to start the stack offsets from 0; this
+       means that most stack offsets will be small negative numbers.
+       For debugging, it can also be useful to set the initial stack
+       offset to match the initial stack offset that a program has in
+       concrete execution, so that stack operations can easily be
+       compared. */
+    static addr_t getDefaultInitialStackPtr() {
+	// Arbitrary, but typical for 32-bit Linux/x86 with a 32-bit kernel
+        // return 0xbfffc420;
+	// Example of an initial stack address in main() from an
+	// execution under FuzzBALL:
+        // return 0xbfffcf78;
+	// Historical default:
+	return 0;
+    }
+
+    /* In real execution, the argument pointers and the argument
+       strings are stored in higher (older) parts of the stack section
+       that used for stack frames. Currently the static analysis
+       instead creates and argv region as a global region; the
+       important thing there is probably just that its address not
+       overlap with any of the program's static code or data
+       areas.  */
     static addr_t getDefaultArgvAddress() {
-        return 8; // Arbitrary low number
+	// Typically arguments are stored somewhat higher on the stack
+	// than the initial stack pointer
+        return getDefaultInitialStackPtr() + 0x1000;
     }
 
     void createSection(const addr_t a, const char* name, 

@@ -1111,28 +1111,37 @@ bool StridedInterval::containsZero() const {
 void StridedInterval::print(std::ostream& os) const {
     const int width = sizeof(int) * 2;
     os << std::dec << std::noshowbase << strd << '[';
-    if (lo == INT_MIN) {
-        os << "-INFTY";
-    } else if (lo == INT_MAX) {
-        os << "+INFTY";
-    } else {
+    if (isConstant()) {
+	// Special case for constants: print only the value
 #ifndef SHOWDECIMAL
         os << std::hex << std::showbase << lo;
 #else
         os << lo;
 #endif
-    }
-    os << ',';
-    if (hi == INT_MIN) {
-        os << "-INFTY";
-    } else if (hi == INT_MAX) {
-        os << "+INFTY";
     } else {
+	if (lo == INT_MIN) {
+	    os << "-INFTY";
+	} else if (lo == INT_MAX) {
+	    os << "+INFTY";
+	} else {
 #ifndef SHOWDECIMAL
-        os << std::hex << std::showbase << hi;
+	    os << std::hex << std::showbase << lo;
 #else
-        os << hi;
+	    os << lo;
 #endif
+	}
+	os << ',';
+	if (hi == INT_MIN) {
+	    os << "-INFTY";
+	} else if (hi == INT_MAX) {
+	    os << "+INFTY";
+	} else {
+#ifndef SHOWDECIMAL
+	    os << std::hex << std::showbase << hi;
+#else
+	    os << hi;
+#endif
+	}
     }
     os << std::dec << std::noshowbase << ']';
 }
