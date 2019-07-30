@@ -100,7 +100,7 @@ public: // For testing
     typedef Graph<BasicBlock *, BasicBlockEdge *> cfg_t;
     typedef std::map<addr_t,functions_t> Adr2FunMapTy;
     typedef Adr2FunMapTy::const_iterator adr2fun_const_iterator;
-
+    
     std::map<addr_t, BasicBlock *> addr2bb;
     // Map instructions to called functions
     Adr2FunMapTy calls;
@@ -158,7 +158,7 @@ public:
 
     void addCall(addr_t caller, Function *callee);
 
-    void augmentCfg(addr_t, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs, uint32_t max_inst, uint32_t max_func_inst, 
+    void augmentCfg(addr_t, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs, uint32_t max_inst, uint32_t max_func_inst,
 		    std::map<addr_t, Function *> &funcs, std::vector<std::pair<addr_t, addr_t>> &indirect);
     
     BasicBlock *getEntry() const {
@@ -242,7 +242,6 @@ public:
     functions_t::const_iterator call_targets_begin(const BasicBlock &bb);
     functions_t::const_iterator call_targets_end(const BasicBlock &bb);
 };
-
 
 #endif
 

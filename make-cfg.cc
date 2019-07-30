@@ -110,7 +110,7 @@ std::string funcname(addr_t addr) {
 
 void build_cfg(Elf32_Addr *lbphdr, Elf32_Addr *ubphdr, int numsegs, uint32_t max_func_instructions, uint32_t max_instructions) {
     CallGraph *callgraph = the_prog.getCallGraph();
-    
+
     debug("Maximum instructions per function: ");
     if (max_func_instructions == UINT_MAX) {
       debug("infinity\n");
@@ -224,7 +224,7 @@ void load_addresses(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs, 
 void load_indirects(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs,
                     std::vector<char*> &filenames) {
   std::vector<char*>::iterator file_it;
-  
+
   for (file_it=filenames.begin();file_it!=filenames.end();++file_it) {
     ifstream file(*file_it, ios::in);
     if (!file.is_open()) {
@@ -258,7 +258,7 @@ void load_indirects(Prog *p, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int numsegs,
     }
     file.close();
   }
- 
+
 }
 
 void print_usage(){
@@ -341,7 +341,7 @@ int main(int argc, char **argv) {
     if((tmpstr = argv_getString(argc, argv, "--max-instructions=", NULL)) != NULL ) {
       max_instructions = atoi(tmpstr);
     }
-    
+
     if (argc < 2 || argv[argc - 1][0] == '-') {
       print_usage();
       exit(1);
@@ -498,7 +498,7 @@ int main(int argc, char **argv) {
 
     load_addresses(&the_prog, lbphdr, ubphdr, match_count, addresses_filename);
 
-    load_indirects(&the_prog, lbphdr, ubphdr, match_count, indirect_files); 
+    load_indirects(&the_prog, lbphdr, ubphdr, match_count, indirect_files);
 
     /* sample_disass(entry_name, start); */
     build_cfg(lbphdr, ubphdr, match_count, max_func_instructions, max_instructions);

@@ -304,7 +304,7 @@ bool Cfg::addInstruction(addr_t addr, byte_t *bytes, size_t len, int pos,
         if (addr == 0) {
             fprintf(stderr, "ERROR: Address somehow set to 0, though we searched for it.\n");
         }
-	inst = new Instruction(addr, bytes, len); 
+	inst = new Instruction(addr, bytes, len);
 	assert(inst);
 
 	if (!prev) {
@@ -417,7 +417,7 @@ json_spirit::Object Cfg::json() {
     json_spirit::Object cfgobj;
 
     json_spirit::Array blocksarr;
-    for (Cfg::const_bb_iterator bbit = bb_begin(); 
+    for (Cfg::const_bb_iterator bbit = bb_begin();
 	 bbit != bb_end(); bbit++) {
 	BasicBlock *bb = *bbit;
 	json_spirit::Object blockobj;
@@ -428,7 +428,7 @@ json_spirit::Object Cfg::json() {
 	blockobj.push_back(json_spirit::Pair("functionblocknumberid", j));
 	//blockobj.push_back(Pair("executed", bb->isExecuted()));
 	json_spirit::Array instrarray;
-	for (instructions_t::iterator it = bb->instructions.begin(); 
+	for (instructions_t::iterator it = bb->instructions.begin();
 	     it != bb->instructions.end(); it++) {
 	    json_spirit::Object instructionobj;
 	    stringstream instraddr;
@@ -441,19 +441,19 @@ json_spirit::Object Cfg::json() {
 		bytes << " 0x" << std::hex << int((*it)->getRawBytes()[i]);
 	    }
 	    instructionobj.push_back(json_spirit::Pair("bytes", bytes.str()));
-	    
+
 	    instrarray.push_back(instructionobj);
 	}
 	blockobj.push_back(json_spirit::Pair("instructions", json_spirit::Value(instrarray)));
-	
+
 	blocksarr.push_back(blockobj);
 	//	r += "   " + std::string(tmp);
 	j++;
     }
 
-     for (std::map<addr_t, functions_t>::iterator it = calls.begin(); 
- 	 it != calls.end(); it++) {
- 	functions.insert(it->second.begin(), it->second.end());
+     for (std::map<addr_t, functions_t>::iterator it = calls.begin();
+	  it != calls.end(); it++) {
+	 functions.insert(it->second.begin(), it->second.end());
      }
 
     json_spirit::Array edgesarr;
@@ -461,8 +461,8 @@ json_spirit::Object Cfg::json() {
     // inter-function edges
     for (std::map<addr_t, functions_t>::iterator it1 = calls.begin();
 	 it1 != calls.end(); it1++) {
-	
-	for (functions_t::iterator it2 = it1->second.begin(); 
+
+	for (functions_t::iterator it2 = it1->second.begin();
 	     it2 != it1->second.end(); it2++) {
 	    json_spirit::Object edgeobj;
 	    stringstream sourceaddr, targetaddr;
@@ -478,7 +478,7 @@ json_spirit::Object Cfg::json() {
 
     // intra-function edges
     for (Cfg::const_edge_iterator eit = edge_begin();
- 	 eit != edge_end(); eit++) {
+	 eit != edge_end(); eit++) {
 	BasicBlockEdge *e = *eit;
 	BasicBlock *source = e->getSource(), *target = e->getTarget();
 
@@ -489,13 +489,13 @@ json_spirit::Object Cfg::json() {
 
 	edgeobj.push_back(json_spirit::Pair("source", sourceaddr.str()));
 	edgeobj.push_back(json_spirit::Pair("target", targetaddr.str()));
-	
+
 	edgesarr.push_back(edgeobj);
     }
 
     // put together the block list and edge list
     json_spirit::Object finalcfg;
-    
+
     finalcfg.push_back(json_spirit::Pair("blocks", blocksarr));
     finalcfg.push_back(json_spirit::Pair("edges",edgesarr));
 
@@ -814,6 +814,7 @@ disassemble(addr_t addr, byte_t *code, addr_t &next1, addr_t &next2,
     return len; 
 }
 
+
 void Cfg::augmentCfg(std::list<std::pair<addr_t, addr_t> > &wlist, 
 		     std::set<addr_t> &done, 
 		     std::map<addr_t, Function *> &funcs, std::vector<std::pair<addr_t, addr_t>> &indirects) {
@@ -852,13 +853,13 @@ void Cfg::augmentCfg(std::list<std::pair<addr_t, addr_t> > &wlist,
 	pos = BASICBLOCK_MIDDLE;
 
     debug2(" Statically processing instruction %.8x "
-    	   "(%d bytes long, successor of %.8x, pos %d)\n", 
-    	   curr, len, prev, pos);
-    //debug2(" Statically processing instruction %.8x\n", 
+	   "(%d bytes long, successor of %.8x, pos %d)\n", 
+	   curr, len, prev, pos);
+    //debug2(" Statically processing instruction %.8x\n",
     //   curr);
 
     // Add instruction to the CFG if not in there already
-    addInstruction(curr, addr2bytes(this, curr), len, pos, prev, 
+    addInstruction(curr, addr2bytes(this, curr), len, pos, prev,
 		   category == XED_CATEGORY_RET);
 
     // Add a call target if necessary
@@ -917,7 +918,7 @@ void Cfg::augmentCfg(addr_t start, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int num
     //    debug3("attempting to disassemble at a non-executable code segment.");
     //    return;
     //}
-    
+
     debug2("Augmenting CFG of %.8x\n", start);
 
     if (strcmp(function->getName(), "exit") == 0 || 
@@ -943,11 +944,11 @@ void Cfg::augmentCfg(addr_t start, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int num
 	if (inst_count++ > max_func_inst || total_inst > max_inst) {
 	    debug2("WARNING: Maximum instructions reached!\n");
 	    break;
-	} 
+	}
 	if (ubphr != NULL && lbphr != NULL) {
 	    for (i = 0; i < numsegs; i++) {
 		if ((addr_n >= lbphr[i]) && (addr_n <= ubphr[i])) {
-		    ok = true; 
+		    ok = true;
 		    break;
 		}
 	    }
@@ -986,7 +987,7 @@ void Cfg::augmentCfg(addr_t start, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int num
 		       (*bbit)->getAddress(), 
 		       (*bbit)->getAddress() + (*bbit)->getSize(), prev, buf);
 		wlist.push_back(std::pair<addr_t, addr_t>
- 				((*bbit)->getAddress(), prev));
+				((*bbit)->getAddress(), prev));
 	    }
 	}
     }
@@ -999,9 +1000,10 @@ void Cfg::augmentCfg(addr_t start, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int num
 	}
 	augmentCfg(indirect_wlist, done, funcs, indirects);
     }
+
     debug2("Second pass completed\n");
 
-    // handle indirects    
+    // handle indirects
     indirect_wlist.insert(indirect_wlist.end(), indirects.begin(), indirects.end());
 
     while (!indirect_wlist.empty()) {
@@ -1014,7 +1016,7 @@ void Cfg::augmentCfg(addr_t start, Elf32_Addr *lbphr, Elf32_Addr *ubphr, int num
 	    wlist.pop_front();
 	    continue;
 	}
-	
+
         if (!sec) {
             debug2("attempting to disassemble at a non-executable code segment at %.8x.\n", indirect_wlist.front().second);
             indirect_wlist.pop_front();
@@ -1235,7 +1237,7 @@ Instruction *BasicBlock::getInstruction(addr_t i) {
 	if ((*it)->getAddress() == i)
 	    return *it;
     }
-
+    
     assert(0);
     fprintf(stderr, "ERROR: Could not find instruction %.8x", i);
     return 0;

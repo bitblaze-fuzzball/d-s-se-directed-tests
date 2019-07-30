@@ -90,7 +90,7 @@ void interproc_cfg_set_target_warning(InterProcCFG *ipcfg, addr_t addr,
 				      program_info *pi) {
     Warning *w = pi->warnings[addr];
     assert(w);
-    ipcfg->set_target_warning(w, pi->functions); 
+    ipcfg->set_target_warning(w, pi->functions);
 }
 
 bool_for_camlidl

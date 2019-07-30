@@ -44,7 +44,7 @@ let load_cfg_multi_targets fname targets =
     prog_info_or := Some prog_info;
     ipcfg_or := Some ipcfg
   else Printf.printf "Warning: CFG file does not exist.\n"
-         
+
 let opt_trace_cjmp_heuristic = ref false
 
 let opt_which_branch_heur = ref 0
@@ -249,7 +249,7 @@ let load_cfg_warn cfg_fname warn_fname warn_addr targ_addr =
     let header = Cfgs.interproc_cfg_get_component ipcfg warn_addr prog_info in
     Hashtbl.replace opt_loop_pattern header (new_loop_pattern_info header)
   else Printf.printf "Warning: CFG or warning file does not exist.\n"
-        
+
 let load_cfg_all_targets cfg_fname warn_fname =
   let prog_info = Cfgs.program_info_from_file cfg_fname in
   let ipcfg = Cfgs.construct_interproc_cfg prog_info in
@@ -460,7 +460,7 @@ let total_iter_count = ref 1
 
 let target_addr_rotation = ref 0
 
-let incr_target_addr () = 
+let incr_target_addr () =
   match !opt_target_addrs with
     | _ :: _ :: _ -> (* more than one *)
 	let addr = List.nth !opt_target_addrs !target_addr_rotation in
@@ -538,7 +538,7 @@ let read_lines_file fname =
       Printf.printf("Warning: Target file does not exist.\n");
       []
     end
-    
+
 let main argv = 
   Arg.parse
     (Arg.align
@@ -604,7 +604,7 @@ let main argv =
 	  ("-rank-base", Arg.Set_int(opt_rank_base),
 	   "N Allow rank to decrease by N before stopping path");
  	  ("-warn-addr", Arg.String
- 	     (fun s ->
+	     (fun s ->
 		opt_warn_addrs := (Int64.of_string s) :: !opt_warn_addrs),
  	   "addr Warning address you would like to cover");
 	  ("-warn-file", Arg.String

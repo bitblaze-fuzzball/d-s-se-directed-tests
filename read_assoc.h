@@ -3,7 +3,7 @@
 
 #include <cassert>
 #include <fstream>
-#include <iostream> 
+#include <iostream>
 #include <getopt.h>
 #include <string>
 #include <vector>

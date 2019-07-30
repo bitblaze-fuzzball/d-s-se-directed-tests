@@ -362,7 +362,7 @@ int main(int argc, char **argv) {
 	// Remove self loops 
 	func->getCfg()->removeSelfLoops();
 
-	snprintf(tmp, sizeof(tmp) - 1, "%s/%.8x.dot", "./", 
+	snprintf(tmp, sizeof(tmp) - 1, "%s/%.8x.dot", "./",
 		 func->getAddress());
 	tmp[sizeof(tmp) - 1] = '\0';
 	f = fopen(tmp, "w");

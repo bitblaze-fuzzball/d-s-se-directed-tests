@@ -393,7 +393,7 @@ InterProcCFG::add_target_addr(addr_t target_addr,
     assert(target_bb);
     IPCFGNode dst_node = bb_to_node[target_bb];
     property_map<IPCFGraph, vertex_distance_t>::type
- 	distance = get(vertex_distance_t(), ipcfg);
+	distance = get(vertex_distance_t(), ipcfg);
     dijkstra_shortest_paths(ipcfg, dst_node,
 			    distance_map(distance));
     graph_traits<IPCFGraph>::vertex_iterator vi, vi_end;
@@ -465,7 +465,7 @@ InterProcCFG::lookup_multi_distance(addr_t source_addr, addr_t target_addr,
     pair<IPCFGNode, IPCFGNode> p =
 	pair<IPCFGNode, IPCFGNode>(source_node, target_node);
     map<pair<IPCFGNode, IPCFGNode>, unsigned long long>::const_iterator it;
-    it = multi_distance.find(p); 
+    it = multi_distance.find(p);
     if (it != multi_distance.end()) {
 	//printf("Distance is %lld\n", (*it).second);
 	return (*it).second;

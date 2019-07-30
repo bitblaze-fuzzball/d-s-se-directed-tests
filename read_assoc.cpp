@@ -65,10 +65,10 @@ static void print_usage(){
   int option_index = 0;
   char* fname;
   int c = 0;
-  
+
   while( (c = getopt_long(argc,argv, "a:v", long_options, &option_index)) != -1){
     switch(c){
-    case 'a': 
+    case 'a':
       fname = optarg;
       if(verbose_flag){
 	cout << "File to read: " << fname << endl;

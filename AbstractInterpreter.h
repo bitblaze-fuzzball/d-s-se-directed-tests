@@ -8,7 +8,7 @@
 
 // defines chance we skip a traversal of a function
 // guaranted to traverse a function at least BIAS_FACTOR times
-// i.e., calculated by BIAS_FACTOR / (number of times we traversed) 
+// i.e., calculated by BIAS_FACTOR / (number of times we traversed)
 #define BIAS_FACTOR 10
 
 #include "Utilities.h"
@@ -274,8 +274,8 @@ AbstractInterpreter<SubClass, ValSetTy, StateTy>::visit(Expression& E) {
         case vine::EXTENSION:
            assert(false && "Reached vine::EXTENSION, an unhandled expression type.");
         default:
-	    assert(false && "Reached an unknown, unhandled expression type.");
-	    return VSetPtr();
+            assert(false && "Reached an unknown, unhandled expression type.");
+            return VSetPtr();
     }
 #undef DELEGATE
 }
@@ -308,8 +308,8 @@ AbstractInterpreter<SubClass,ValSetTy,StateTy>::visit(Statement& S) {
 	    Cfg *cfg = cur_bb->getCfg();
 	    assert(cfg);
 	    bool rec = false;
-	    
-	    for (functions_t::const_iterator ctit = cfg->call_targets_begin(*bb); 
+
+	    for (functions_t::const_iterator ctit = cfg->call_targets_begin(*bb);
 		 ctit != cfg->call_targets_end(*bb); ++ctit) {
 		Cfg *f_cfg = (*ctit)->getCfg();
 		//		fprintf(stderr, " CFG\n");
@@ -338,7 +338,7 @@ AbstractInterpreter<SubClass,ValSetTy,StateTy>::visit(Statement& S) {
 		depth[&ci] = at_depth;
 	    } else {
 		fprintf(stderr, "WARNING: Recursive function call (%.8x), ignoring.\n", cur_instr->getAddress());
-	    } 
+	    }
 	    break;
 	}
         case vine::RETURN:
@@ -401,29 +401,28 @@ AbstractInterpreter<SubClass,ValSetTy,StateTy>::visitCallInstr(CallInstr
     if (DEBUG_LEVEL >= 2)
         std::cerr << *stack_frame_size << std::endl;
 
+
     for (functions_t::const_iterator ctit = cfg->call_targets_begin(*bb); 
 	 ctit != cfg->call_targets_end(*bb); ++ctit) {
 	assert(!cur_state->empty() && "Uninitialized state.");
 
-	const int cutOff =  
-	    cur_state->read(absdomain::reg::ESP_REG)->isConstant() ?
-	    cur_state->read(absdomain::reg::ESP_REG)->
+    const int cutOff =  
+        cur_state->read(absdomain::reg::ESP_REG)->isConstant() ?
+        cur_state->read(absdomain::reg::ESP_REG)->
             begin()->get().second->getLo() :
             0;
-	assert(cutOff <= 0 && "Invalid cutoff.");
+    assert(cutOff <= 0 && "Invalid cutoff.");
 
 	// Interpret all functions starting from the same initial state since
 	// only one function is effectively called
-	//	fprintf(stderr, "THIS FAR\n");
 	visit((*ctit)->getCfg(), cur_instr->getAddress());
-	//	fprintf(stderr, "BUT NO FURTHER\n");
-	
+
 	// Save the state after the call
-	if (cutOff < 0) {
-	    states_after_call.push_back(cur_state->discardFrame(cutOff));
-	} else {
-	    states_after_call.push_back(cur_state);
-	}
+    if (cutOff < 0) {
+        states_after_call.push_back(cur_state->discardFrame(cutOff));
+    } else {
+        states_after_call.push_back(cur_state);
+    }
 
 	// Restore the state before the call to be able to reinterpret
 	// the call starting from the same original state
@@ -612,8 +611,9 @@ AbstractInterpreter<SubClass,ValSetTy,StateTy>::visit(Instruction &i) {
                 return;
             }
         }
-
-        if (i.getBasicBlock()->getCfg()->call_targets_begin(
+	
+        if
+            (i.getBasicBlock()->getCfg()->call_targets_begin(
              i.getAddress()) == i.getBasicBlock()->getCfg()->
              call_targets_end(i.getAddress())) { 
                 debug3("!!! Cannot interpret the call @ %.8x since "
@@ -698,7 +698,7 @@ inline bool AbstractInterpreter<S, V, St>::preVisit(BasicBlock &bb,
 		    // XXX: this is useless since we don't do any join when we
 		    // apply widening
 		    assert(cur_ctx_post_states->find(*pit) != 
-		       cur_ctx_post_states->end());
+			   cur_ctx_post_states->end());
 		    states_to_join.push_back((*cur_ctx_post_states)[*pit]);
 		    strcpy(msg, "backedge: will be joined");
 		} */
@@ -790,7 +790,7 @@ inline void AbstractInterpreter<S, V, St>::postVisit(BasicBlock &bb,
 // Put the basic block of a component in the worklist (the entry point of the
 // component can be excluded if needed).
 template<class S, class V, class St>
-inline void AbstractInterpreter<S, V, St>::putComponentInWorklist(BasicBlock &bb, 
+inline void AbstractInterpreter<S, V, St>::putComponentInWorklist(BasicBlock &bb,
 								  bb_list_t &wlist, addr_t rec_addr,
 								  bool putentry) {
     Cfg *cfg = bb.getCfg();
@@ -803,10 +803,10 @@ inline void AbstractInterpreter<S, V, St>::putComponentInWorklist(BasicBlock &bb
 	BasicBlock *bb2 = cfg->getVertex(*wit); 
 	bool rec = false;
 	/* fprintf(stderr, "\nchecking block: %.8x\n", bb2->getAddress());
-	for (func_list_t::const_iterator cit = callstack.begin(); 
+	for (func_list_t::const_iterator cit = callstack.begin();
 	     cit != callstack.end(); ++cit) {
 	    fprintf(stderr, "%.8x\t", (*cit)->getAddress());
-		    //	    fprintf(stderr, "%.8x (%s@%s)\t", (*cit)->getAddress(), (*cit)->getName(), 
+		    //	    fprintf(stderr, "%.8x (%s@%s)\t", (*cit)->getAddress(), (*cit)->getName(),
 		    //(*cit)->getModule());
 	    if ((*cit)->getAddress() == bb2->getAddress()) {
 		rec = true;
@@ -856,9 +856,9 @@ inline void AbstractInterpreter<S, V, St>::visit(Cfg &cfg, addr_t
     if (static_cast<S*>(this)->visitCFG(cfg)) {
         return;
     }
-
+    
     assert(!cur_state->empty() && "Uninitialized state.");
-
+    
     debug2("[FUNCTION] %s@%s %.8x %d\n", cfg.getFunction()->getName(), 
 	   cfg.getFunction()->getModule(), cfg.getFunction()->getAddress(),
 	   callstack.size());
@@ -869,7 +869,7 @@ inline void AbstractInterpreter<S, V, St>::visit(Cfg &cfg, addr_t
 
     cur_func = cfg.getFunction();
     assert(!cur_state->empty() && "Uninitialized state.");
-
+    
     debug2("Weak topological ordering: %s\n", cfg.wto2string().c_str());
 
     // Worklist (used for tracking the block that requires interpretation)
@@ -891,7 +891,7 @@ inline void AbstractInterpreter<S, V, St>::visit(Cfg &cfg, addr_t
         bb = worklist.front();
         worklist.pop_front();
 	current_instruction = bb->getAddress();
-
+	
         debug2("\t[BASICBLOCK] %.8x-%.8x (reached from %.8x-%.8x) %s\n", 
 	       bb->getAddress(),
 	       bb->getAddress() + bb->getSize() - 1, 
@@ -970,13 +970,13 @@ inline void AbstractInterpreter<S, V, St>::visit(Cfg &cfg, addr_t
 
     cur_state = join(exit_states);
     assert(!cur_state->empty() && "Uninitialized state.");
-    
+
     debug2("[FUNCTION] %s@%s %.8x DONE!!!!\n\n", cfg.getFunction()->getName(), 
 	   cfg.getFunction()->getModule(), cfg.getFunction()->getAddress());
 
     if (prev_context.get())
 	leaveFunction(*cfg.getFunction(), prev_context);
-    
+
     cur_func = prev_func;
 
     if (cur_func) {
@@ -1033,7 +1033,7 @@ AbstractInterpreter<SubClass, ValSetTy,
 
 
 template<class S, class V, class St>
-inline addr_t AbstractInterpreter<S,V,St>::enterFunction(Function &f, 
+inline addr_t AbstractInterpreter<S,V,St>::enterFunction(Function &f,
 						addr_t callsite) {
     // *************************************************************************
     // Ensure that the function has at least one exit point
@@ -1091,11 +1091,8 @@ inline addr_t AbstractInterpreter<S,V,St>::enterFunction(Function &f,
     debug2("\tCurrent context: %s\n", cur_context->tostring().c_str());
 
     // Remove self loops to simplify the analysis
-    //    fprintf(stderr, "!!");
     f.getCfg()->removeSelfLoops();
-    //    fprintf(stderr,"^^");
     f.getCfg()->sanityCheck(true);
-    //    fprintf(stderr,"&&");
 
     // Compute WTO
     f.getCfg()->computeWeakTopologicalOrdering();
