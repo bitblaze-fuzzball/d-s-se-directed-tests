@@ -44,5 +44,4 @@ vulapps/wu-ftpd/f3/rp-bad-diet
 include
 lib
 make-cfg
-*.orig
 test_assoc
