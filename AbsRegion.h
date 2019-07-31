@@ -468,9 +468,16 @@ inline typename Region<T>::VSetPtr Region<T>::read(TPtr p) const {
                 // analysis.
                 const size_t lower =
                     mmap->getLowerBound((unsigned)p->getLo());
-                const size_t upper =
+                const size_t upper = lower +
                     NARGV_PTRS_DEFAULT * 4  +
                     NARGV_PTRS_DEFAULT * NARGV_STRLEN_DEFAULT;
+
+		if (DEBUG_LEVEL >= 4) {
+		    debug4("Comparing ptr range [0x%x,0x%x] "
+			   "to argv area [0x%x,0x%x]\n",
+			   (int)p->getLo(), (int)p->getHi(),
+			   (int)lower, (int)upper);
+		}
 
                 if (p->getLo() >= (int)lower && p->getHi() <=
                         (int)upper) {
