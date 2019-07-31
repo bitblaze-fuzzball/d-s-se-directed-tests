@@ -26,7 +26,7 @@ fuzzball-tmp-*
 *.cmi
 *.cmx
 /cfg_fuzzball
-cfg/MIT
+/cfg/*.cfg
 vulapps/bind/b1/nxt-bad-myresolv-mylibc-diet
 vulapps/bind/b2/sig-bad-diet
 vulapps/bind/b3/iquery-bad-diet
