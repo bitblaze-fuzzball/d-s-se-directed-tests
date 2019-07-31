@@ -69,6 +69,8 @@ private:
 
     // Apply T.*OperatorTy to all elements in _Self
     VSetPtr apply(_Self&, OperatorTy);
+    // Apply T.*OperatorTy to top values in each region
+    VSetPtr apply_to_top(OperatorTy);
     // Apply T.*ComparatorTy
     bool compare(const _Self&, ComparatorTy) const;
 
@@ -695,6 +697,26 @@ inline typename ValueSet<T>::VSetPtr ValueSet<T>::apply(_Self& a,
 }
 
 template <typename T>
+inline typename ValueSet<T>::VSetPtr
+ValueSet<T>::apply_to_top(OperatorTy op) {
+
+    const_iterator TI = begin(), TE = end();
+
+    VSetPtr vs = getBot();
+
+    for (; TI != TE; ++TI) {
+        AlocPair tp = TI->get();
+
+	TPtr op_result = ((*tp.second).*op)(*(T::getTop()));
+
+	vs = vs->join(*get(std::make_pair(tp.first, op_result)));
+    }
+
+    return vs;
+}
+
+
+template <typename T>
 inline typename ValueSet<T>::VSetPtr ValueSet<T>::operator+(_Self& a) {
     // Handle special cases first
     if (isTop() || a.isTop()) {
@@ -753,9 +775,9 @@ template <typename T>
 inline typename ValueSet<T>::VSetPtr ValueSet<T>::operator&(_Self& a) {
     // Handle special cases first
     if (isTop()) {
-        return VSetPtr(&a);
+	return a.apply_to_top(&T::operator&);
     } else if (a.isTop()) {
-        return VSetPtr(this);
+	return apply_to_top(&T::operator&);
     } else if (isBot() || a.isBot()) {
         return getBot();
     }

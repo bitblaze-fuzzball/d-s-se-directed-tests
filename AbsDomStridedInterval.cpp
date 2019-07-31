@@ -800,12 +800,11 @@ StridedIntervalPtr StridedInterval::operator~() {
 }
 
 StridedIntervalPtr StridedInterval::operator&(StridedInterval& i){
+    /* We used to have special cases here for & with Top, but I think
+       they were wrong. The more general computation using OR worked
+       okay for the case I was seeing, though. */
     if (isBot() || i.isBot()) {
         return getBot();
-    } else if (isTop()) {
-        return get(i.lo, i.hi, gcdSafe(strd, i.strd));
-    } else if (i.isTop()) {
-        return get(lo, hi, gcdSafe(strd, i.strd));
     } else if (isConstant() && i.isConstant()) {
         return get(lo & i.lo, umax(strd, i.strd));
     } else {
