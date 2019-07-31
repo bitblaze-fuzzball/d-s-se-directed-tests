@@ -1062,8 +1062,10 @@ VSAInterpreter<T>::visitCastExpr(CastExpr& E, VSetPtr v) {
             break;
     }
 
-    //std::cout << "Casting " << *v << " to size " << newSize << " = " <<
-    //    *res << std::endl;
+    if (DEBUG_LEVEL >= 4) {
+	std::cout << "Casting " << *v << " to size " << newSize << " = " <<
+	    *res << std::endl;
+    }
     return res;
 }
 
