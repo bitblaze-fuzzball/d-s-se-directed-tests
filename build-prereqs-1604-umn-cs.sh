@@ -30,6 +30,8 @@
 # module add build/ccache
 
 # # Store ccache's cache on a local filesystem:
+# # Note: CCACHE_DIR must point to a existing folder
+# mkdir /export/scratch2/$(whoami)/ccache
 # export CCACHE_DIR=/export/scratch2/$(whoami)/ccache
 
 # # Check out the d-s-se code tree, the cgc-branch branch
